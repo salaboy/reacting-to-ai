@@ -1,0 +1,39 @@
+grafana:
+  enabled: false
+
+prometheus:
+  prometheusSpec:
+    additionalScrapeConfigs:
+      - job_name: otel-collector-spanmetrics
+        scrape_interval: 15s
+        static_configs:
+          - targets:
+              - otel-collector-opentelemetry-collector.opentelemetry.svc.cluster.local:8889
+
+additionalPrometheusRulesMap:
+  error-rate-alerts:
+    groups:
+      - name: reacting-to-ai
+        rules:
+          - alert: HighErrorRate
+            expr: |
+              (
+                sum(rate(calls_total{status_code="STATUS_CODE_ERROR"}[1m]))
+                /
+                sum(rate(calls_total[1m]))
+              ) > 0.05
+            for: 1m
+            labels:
+              severity: critical
+            annotations:
+              summary: "High error rate detected"
+              description: "Error rate has exceeded 5% over the last minute (current: {{ $value | humanizePercentage }})."
+
+alertmanager:
+  enabled: true
+  alertmanagerSpec:
+    resources:
+      requests:
+        memory: 64Mi
+      limits:
+        memory: 128Mi

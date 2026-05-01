@@ -1,0 +1,29 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: reacting-to-ai
+  labels:
+    app: reacting-to-ai
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: reacting-to-ai
+  template:
+    metadata:
+      labels:
+        app: reacting-to-ai
+      annotations:
+        instrumentation.opentelemetry.io/inject-go: "opentelemetry/instrumentation"
+    spec:
+      containers:
+        - name: reacting-to-ai
+          image: ghcr.io/salaboy/reacting-to-ai:main
+          ports:
+            - containerPort: 8080
+          resources:
+            requests:
+              memory: 64Mi
+              cpu: 100m
+            limits:
+              memory: 128Mi

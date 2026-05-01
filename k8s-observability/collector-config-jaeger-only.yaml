@@ -1,0 +1,63 @@
+mode: deployment
+replicaCount: 1
+image:
+  repository: otel/opentelemetry-collector-contrib
+resources:
+  limits:
+    memory: 512Mi
+  requests:
+    memory: 256Mi
+
+ports:
+  prometheus:
+    enabled: true
+    containerPort: 8889
+    servicePort: 8889
+    protocol: TCP
+
+config:
+  receivers:
+    otlp:
+      protocols:
+        grpc:
+          endpoint: 0.0.0.0:4317
+        http:
+          endpoint: 0.0.0.0:4318
+
+  connectors:
+    spanmetrics:
+      dimensions:
+        - name: http.method
+        - name: http.status_code
+        - name: http.route
+
+  processors:
+    batch:
+      timeout: 10s
+      send_batch_size: 1024
+
+  exporters:
+    otlp/jaeger:
+      endpoint: jaeger-collector.default.svc.cluster.local:4317
+      tls:
+        insecure: true
+
+    prometheus:
+      endpoint: 0.0.0.0:8889
+
+  extensions:
+    health_check:
+      endpoint: 0.0.0.0:13133
+
+  service:
+    extensions: [health_check]
+    pipelines:
+      traces:
+        receivers: [otlp]
+        processors: [batch]
+        exporters: [otlp/jaeger, spanmetrics]
+
+      metrics:
+        receivers: [spanmetrics]
+        processors: [batch]
+        exporters: [prometheus]

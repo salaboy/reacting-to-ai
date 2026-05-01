@@ -1,0 +1,94 @@
+.app {
+  max-width: 600px;
+  margin: 0 auto;
+  padding: 48px 24px;
+  text-align: center;
+  font-family: system-ui, -apple-system, sans-serif;
+}
+
+h1 {
+  margin: 0 0 8px;
+  font-size: 2rem;
+}
+
+.subtitle {
+  color: #666;
+  margin: 0 0 32px;
+}
+
+.buttons {
+  display: flex;
+  gap: 16px;
+  justify-content: center;
+  flex-wrap: wrap;
+}
+
+.btn {
+  padding: 12px 24px;
+  font-size: 1rem;
+  font-weight: 600;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: opacity 0.2s;
+  color: white;
+}
+
+.btn:hover {
+  opacity: 0.85;
+}
+
+.btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.btn.success {
+  background: #16a34a;
+}
+
+.btn.error {
+  background: #dc2626;
+}
+
+.loading {
+  margin-top: 24px;
+  color: #666;
+}
+
+.response {
+  margin-top: 24px;
+  padding: 16px;
+  border-radius: 8px;
+  text-align: left;
+}
+
+.response-success {
+  background: #f0fdf4;
+  border: 1px solid #bbf7d0;
+}
+
+.response-error {
+  background: #fef2f2;
+  border: 1px solid #fecaca;
+}
+
+.response-status {
+  font-weight: 700;
+  margin-bottom: 8px;
+  font-size: 0.9rem;
+}
+
+.response-success .response-status {
+  color: #16a34a;
+}
+
+.response-error .response-status {
+  color: #dc2626;
+}
+
+.response pre {
+  margin: 0;
+  white-space: pre-wrap;
+  font-size: 0.85rem;
+}
