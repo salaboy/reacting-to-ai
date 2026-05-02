@@ -7,7 +7,7 @@ function App() {
   useEffect(() => {
     const fetchAlerts = async () => {
       try {
-        const res = await fetch('/api/alerts')
+        const res = await fetch('/monitor/api/alerts')
         const data = await res.json()
         setAlerts(data || [])
       } catch {
