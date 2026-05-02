@@ -10,6 +10,9 @@ prometheus:
           - targets:
               - otel-collector-opentelemetry-collector.opentelemetry.svc.cluster.local:8889
 
+kubeProxy:
+  enabled: false
+
 additionalPrometheusRulesMap:
   error-rate-alerts:
     groups:
