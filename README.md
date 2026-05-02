@@ -59,30 +59,32 @@ DASH0_AUTH_TOKEN=your-token ./scripts/setup-cluster.sh
 
 The script performs these steps:
 
-1. Creates a KinD cluster
-2. Installs Jaeger (in-memory, all-in-one)
-3. Creates the OpenTelemetry namespace and configures Dash0 secrets (if token is set)
-4. Installs Prometheus and Alertmanager (with the `HighErrorRate` alert rule)
-5. Installs the OpenTelemetry Collector (with spanmetrics connector)
-6. Installs cert-manager
-7. Installs the OpenTelemetry Operator
-8. Applies the OpenTelemetry Instrumentation resource
-9. Installs Argo CD
-10. Deploys the monitor agent and fixer agent
-11. Configures the Argo CD Application to sync the main app from `k8s/`
+1. Creates a KinD cluster (with ingress port mappings)
+2. Installs the NGINX Ingress Controller
+3. Installs Jaeger (in-memory, all-in-one)
+4. Creates the OpenTelemetry namespace and configures Dash0 secrets (if token is set)
+5. Installs Prometheus and Alertmanager (with the `HighErrorRate` alert rule)
+6. Installs the OpenTelemetry Collector (with spanmetrics connector)
+7. Installs cert-manager
+8. Installs the OpenTelemetry Operator
+9. Applies the OpenTelemetry Instrumentation resource
+10. Installs Argo CD
+11. Deploys the monitor agent and fixer agent
+12. Configures the Argo CD Application to sync the main app from `k8s/`
+13. Applies Ingress resources for path-based routing
 
 ## Accessing the UIs
 
-After the setup completes, use `kubectl port-forward` to access each service:
+All UIs are accessible via the NGINX Ingress Controller on `http://localhost`:
 
-| Service | Command | URL |
-|---|---|---|
-| Application | `kubectl port-forward svc/reacting-to-ai 8080:80` | http://localhost:8080 |
-| Monitor Agent | `kubectl port-forward svc/monitor-agent 8082` | http://localhost:8082 |
-| Jaeger | `kubectl port-forward svc/jaeger-query 16686` | http://localhost:16686 |
-| Prometheus | `kubectl port-forward svc/prometheus-kube-prometheus-prometheus -n monitoring 9090` | http://localhost:9090 |
-| Alertmanager | `kubectl port-forward svc/prometheus-kube-prometheus-alertmanager -n monitoring 9093` | http://localhost:9093 |
-| Argo CD | `kubectl port-forward svc/argocd-server -n argocd 8443:443` | https://localhost:8443 |
+| Service | URL |
+|---|---|
+| Application | http://localhost/ |
+| Monitor Agent | http://localhost/monitor/ |
+| Jaeger | http://localhost/jaeger/ui |
+| Prometheus | http://localhost/prometheus/ |
+| Alertmanager | http://localhost/alertmanager/ |
+| Argo CD | http://localhost/argocd/ |
 
 Argo CD credentials:
 
@@ -100,6 +102,7 @@ kubectl -n argocd get secret argocd-initial-admin-secret -o jsonpath='{.data.pas
 ├── frontend/                        # React frontend for the main app
 ├── k8s/                             # Kubernetes manifests (deployed via Argo CD)
 ├── k8s-argocd/                      # Argo CD Application resource
+├── k8s-ingress/                     # Ingress resources for path-based routing
 ├── k8s-observability/               # Helm values for Jaeger, OTel Collector, Prometheus
 ├── agents/
 │   ├── monitor-agent/               # Receives Alertmanager webhooks, queries Jaeger for related traces

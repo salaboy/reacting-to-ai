@@ -16,6 +16,8 @@ app = FastAPI(title="Monitor Agent")
 
 FIXER_AGENT_URL = os.getenv("FIXER_AGENT_URL", "http://fixer-agent.default.svc.cluster.local:8081")
 JAEGER_QUERY_URL = os.getenv("JAEGER_QUERY_URL", "http://jaeger-query.default.svc.cluster.local:16686")
+JAEGER_BASE_PATH = os.getenv("JAEGER_BASE_PATH", "/jaeger/ui")
+JAEGER_EXTERNAL_URL = os.getenv("JAEGER_EXTERNAL_URL", "http://localhost/jaeger/ui")
 
 
 class Alert(BaseModel):
@@ -66,7 +68,7 @@ def fetch_traces_for_alert(alert: Alert) -> list[dict]:
 
     try:
         resp = http_client.get(
-            f"{JAEGER_QUERY_URL}/api/traces",
+            f"{JAEGER_QUERY_URL}{JAEGER_BASE_PATH}/api/traces",
             params=params,
             timeout=5,
         )
@@ -88,7 +90,7 @@ def fetch_traces_for_alert(alert: Alert) -> list[dict]:
                 "duration": root_span.get("duration", 0),
                 "startTime": root_span.get("startTime", 0),
                 "spanCount": len(spans),
-                "jaegerUrl": f"{JAEGER_QUERY_URL}/trace/{trace_id}",
+                "jaegerUrl": f"{JAEGER_EXTERNAL_URL}/trace/{trace_id}",
             })
 
         logger.info("Found %d error trace(s) in Jaeger for service %s", len(traces), service_name)

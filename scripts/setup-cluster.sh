@@ -17,9 +17,25 @@ echo "--- Creating KinD cluster: $CLUSTER_NAME ---"
 if kind get clusters 2>/dev/null | grep -q "^${CLUSTER_NAME}$"; then
   echo "Cluster '$CLUSTER_NAME' already exists, skipping creation."
 else
-  kind create cluster --name "$CLUSTER_NAME" --wait 5m
+  kind create cluster --name "$CLUSTER_NAME" --config "$PROJECT_ROOT/kind-config.yaml" --wait 5m
 fi
 kubectl cluster-info --context "kind-${CLUSTER_NAME}"
+echo ""
+
+# -------------------------------------------------------
+# 1b. Install NGINX Ingress Controller
+# -------------------------------------------------------
+echo "--- Installing NGINX Ingress Controller ---"
+if kubectl get deploy ingress-nginx-controller -n ingress-nginx &>/dev/null; then
+  echo "NGINX Ingress Controller is already installed, skipping."
+else
+  kubectl apply -f https://raw.githubusercontent.com/kubernetes/ingress-nginx/main/deploy/static/provider/kind/deploy.yaml
+  echo "Waiting for ingress controller to be ready..."
+  kubectl wait --namespace ingress-nginx \
+    --for=condition=ready pod \
+    --selector=app.kubernetes.io/component=controller \
+    --timeout=120s
+fi
 echo ""
 
 # -------------------------------------------------------
@@ -198,28 +214,27 @@ kubectl apply -f "$PROJECT_ROOT/k8s-argocd/application.yaml"
 echo "Argo CD Application 'reacting-to-ai' created. It will sync from k8s/ in the main branch."
 echo ""
 
+# -------------------------------------------------------
+# 12. Apply Ingress resources
+# -------------------------------------------------------
+echo "--- Applying Ingress resources ---"
+kubectl apply -f "$PROJECT_ROOT/k8s-ingress/ingress.yaml"
+echo "Ingress resources applied."
+echo ""
+
 echo "=== Cluster & Observability setup complete ==="
 echo ""
 echo "Cluster: $CLUSTER_NAME"
 echo ""
-echo "To access Jaeger UI:"
-echo "  kubectl port-forward svc/jaeger-query 16686"
-echo "  Then open http://localhost:16686"
+echo "All UIs are accessible via the ingress controller on http://localhost:"
 echo ""
-echo "To access Prometheus UI:"
-echo "  kubectl port-forward svc/prometheus-kube-prometheus-prometheus -n monitoring 9090"
-echo "  Then open http://localhost:9090"
+echo "  Application:    http://localhost/"
+echo "  Monitor Agent:  http://localhost/monitor/"
+echo "  Jaeger:         http://localhost/jaeger/ui"
+echo "  Prometheus:     http://localhost/prometheus/"
+echo "  Alertmanager:   http://localhost/alertmanager/"
+echo "  Argo CD:        http://localhost/argocd/"
 echo ""
-echo "To access Alertmanager UI:"
-echo "  kubectl port-forward svc/prometheus-kube-prometheus-alertmanager -n monitoring 9093"
-echo "  Then open http://localhost:9093"
-echo ""
-echo "To access Monitor Agent UI:"
-echo "  kubectl port-forward svc/monitor-agent 8082"
-echo "  Then open http://localhost:8082"
-echo ""
-echo "To access Argo CD UI:"
-echo "  kubectl port-forward svc/argocd-server -n argocd 8443:443"
-echo "  Then open https://localhost:8443"
+echo "Argo CD credentials:"
 echo "  Username: admin"
 echo "  Password: kubectl -n argocd get secret argocd-initial-admin-secret -o jsonpath='{.data.password}' | base64 -d"
