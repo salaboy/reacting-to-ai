@@ -1,6 +1,18 @@
 grafana:
   enabled: false
 
+kubeControllerManager:
+  enabled: false
+
+kubeScheduler:
+  enabled: false
+
+kubeProxy:
+  enabled: false
+
+kubeEtcd:
+  enabled: false
+
 prometheus:
   prometheusSpec:
     additionalScrapeConfigs:
