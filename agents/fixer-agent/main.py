@@ -24,7 +24,7 @@ app = FastAPI(title="Fixer Agent")
 REPO_URL = os.getenv("REPO_URL", "https://github.com/salaboy/reacting-to-ai.git")
 GITHUB_TOKEN = os.getenv("GITHUB_TOKEN", "")
 ANTHROPIC_API_KEY = os.getenv("ANTHROPIC_API_KEY", "")
-ANTHROPIC_MODEL = os.getenv("ANTHROPIC_MODEL", "claude-3-5-sonnet-20241022")
+ANTHROPIC_MODEL = os.getenv("ANTHROPIC_MODEL", "")
 
 SYSTEM_PROMPT = (
     "You are a code fixer agent. You receive alerts from a monitoring system "
@@ -125,11 +125,11 @@ def create_tools(repo_dir: str):
 
 
 def create_agent(tools):
-    llm = ChatAnthropic(
-        model=ANTHROPIC_MODEL,
-        api_key=ANTHROPIC_API_KEY,
-        max_tokens=4096,
-    )
+    kwargs = {"api_key": ANTHROPIC_API_KEY, "max_tokens": 4096}
+    if ANTHROPIC_MODEL:
+        kwargs["model"] = ANTHROPIC_MODEL
+    llm = ChatAnthropic(**kwargs)
+    logger.info("Using model: %s", llm.model)
     return create_react_agent(llm, tools, prompt=SYSTEM_PROMPT)
 
 
