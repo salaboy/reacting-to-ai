@@ -67,10 +67,10 @@ func main() {
 
 	r.Get("/api/error", func(w http.ResponseWriter, r *http.Request) {
 		w.Header().Set("Content-Type", "application/json")
-		w.WriteHeader(http.StatusInternalServerError)
+		w.WriteHeader(http.StatusBadRequest)
 		json.NewEncoder(w).Encode(map[string]string{
 			"status":  "error",
-			"message": "Internal Server Error!",
+			"message": "Bad Request!",
 		})
 	})
 

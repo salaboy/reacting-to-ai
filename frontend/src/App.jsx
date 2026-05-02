@@ -37,7 +37,7 @@ function App() {
           onClick={() => callEndpoint('/api/error')}
           disabled={loading}
         >
-          Call /api/error (500)
+          Call /api/error (400)
         </button>
       </div>
 
