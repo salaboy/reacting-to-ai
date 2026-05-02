@@ -7,6 +7,26 @@ OBSERVABILITY_DIR="$PROJECT_ROOT/k8s-observability"
 
 CLUSTER_NAME="${KIND_CLUSTER_NAME:-reacting-to-ai}"
 
+# -------------------------------------------------------
+# Pre-flight: check required environment variables
+# -------------------------------------------------------
+MISSING=""
+if [ -z "${GITHUB_TOKEN:-}" ]; then
+  MISSING="$MISSING  GITHUB_TOKEN\n"
+fi
+if [ -z "${ANTHROPIC_API_KEY:-}" ]; then
+  MISSING="$MISSING  ANTHROPIC_API_KEY\n"
+fi
+if [ -n "$MISSING" ]; then
+  echo "ERROR: The following required environment variables are not set:"
+  echo -e "$MISSING"
+  echo "These are needed to create the fixer-agent secrets."
+  echo "Set them and re-run:"
+  echo "  export GITHUB_TOKEN=ghp_..."
+  echo "  export ANTHROPIC_API_KEY=sk-ant-..."
+  exit 1
+fi
+
 echo "=== Reacting to AI - Cluster & Observability Setup ==="
 echo ""
 
@@ -193,17 +213,12 @@ echo "Monitor Agent deployed."
 echo ""
 
 echo "--- Deploying Fixer Agent ---"
-if kubectl get secret fixer-agent-secrets &>/dev/null; then
-  kubectl apply -f "$PROJECT_ROOT/agents/fixer-agent/k8s/"
-  echo "Fixer Agent deployed."
-else
-  echo "Skipping Fixer Agent: 'fixer-agent-secrets' secret not found."
-  echo "Create it first with:"
-  echo "  kubectl create secret generic fixer-agent-secrets \\"
-  echo "    --from-literal=anthropic-api-key=\$ANTHROPIC_API_KEY \\"
-  echo "    --from-literal=github-token=\$GITHUB_TOKEN"
-  echo "Then run: kubectl apply -f agents/fixer-agent/k8s/"
-fi
+kubectl create secret generic fixer-agent-secrets \
+  --from-literal=anthropic-api-key="$ANTHROPIC_API_KEY" \
+  --from-literal=github-token="$GITHUB_TOKEN" \
+  --dry-run=client -o yaml | kubectl apply -f -
+kubectl apply -f "$PROJECT_ROOT/agents/fixer-agent/k8s/"
+echo "Fixer Agent deployed."
 echo ""
 
 # -------------------------------------------------------
