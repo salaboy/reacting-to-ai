@@ -9,12 +9,13 @@ from pathlib import Path
 from threading import Thread, Lock
 
 import requests
-from fastapi import FastAPI
+from fastapi import FastAPI, HTTPException
 from fastapi.staticfiles import StaticFiles
 from pydantic import BaseModel
 from langchain_anthropic import ChatAnthropic
 from langgraph.prebuilt import create_react_agent
 from langchain_core.tools import tool
+from langchain_core.messages import AIMessage, ToolMessage
 
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger("fixer-agent")
@@ -169,10 +170,28 @@ def create_pr(repo_dir: str, branch: str, alert_name: str, analysis: str) -> str
     return resp.json().get("html_url", "")
 
 
+def add_step(investigation_id: str, step_type: str, data: dict):
+    with investigations_lock:
+        for inv in investigations:
+            if inv["id"] == investigation_id:
+                inv["steps"].append({
+                    "type": step_type,
+                    "timestamp": datetime.now(timezone.utc).isoformat(),
+                    "data": data,
+                })
+                break
+
+
 def update_investigation(investigation_id: str, updates: dict):
     with investigations_lock:
         for inv in investigations:
             if inv["id"] == investigation_id:
+                if "status" in updates and updates["status"] != inv.get("status"):
+                    inv["steps"].append({
+                        "type": "status_change",
+                        "timestamp": datetime.now(timezone.utc).isoformat(),
+                        "data": {"status": updates["status"]},
+                    })
                 inv.update(updates)
                 break
 
@@ -200,24 +219,45 @@ def run_investigation(investigation_id: str, payload: FixRequest):
                 )
             traces_context = "\n\nRelated error traces:\n" + "\n".join(trace_lines)
 
-        result = agent.invoke({
-            "messages": [
-                {
-                    "role": "user",
-                    "content": (
-                        f"An alert has fired and needs investigation:\n\n"
-                        f"Alert name: {payload.alert_name}\n"
-                        f"Description: {payload.description}\n"
-                        f"Labels: {payload.labels}\n"
-                        f"Annotations: {payload.annotations}"
-                        f"{traces_context}\n\n"
-                        f"Investigate the application code, find the root cause, and apply a fix."
-                    ),
-                }
-            ]
-        })
+        user_prompt = (
+            f"An alert has fired and needs investigation:\n\n"
+            f"Alert name: {payload.alert_name}\n"
+            f"Description: {payload.description}\n"
+            f"Labels: {payload.labels}\n"
+            f"Annotations: {payload.annotations}"
+            f"{traces_context}\n\n"
+            f"Investigate the application code, find the root cause, and apply a fix."
+        )
 
-        analysis = result["messages"][-1].content
+        all_messages = []
+        for chunk in agent.stream(
+            {"messages": [{"role": "user", "content": user_prompt}]},
+        ):
+            for node_output in chunk.values():
+                for msg in node_output.get("messages", []):
+                    all_messages.append(msg)
+                    if isinstance(msg, AIMessage):
+                        if msg.tool_calls:
+                            for tc in msg.tool_calls:
+                                add_step(investigation_id, "tool_call", {
+                                    "tool": tc["name"],
+                                    "input": tc["args"],
+                                })
+                        elif msg.content:
+                            content = msg.content if isinstance(msg.content, str) else str(msg.content)
+                            add_step(investigation_id, "agent_response", {
+                                "content": content,
+                            })
+                    elif isinstance(msg, ToolMessage):
+                        content = msg.content if isinstance(msg.content, str) else str(msg.content)
+                        if len(content) > 5000:
+                            content = content[:5000] + "\n... (truncated)"
+                        add_step(investigation_id, "tool_result", {
+                            "tool": msg.name,
+                            "output": content,
+                        })
+
+        analysis = all_messages[-1].content if all_messages else ""
 
         diff = subprocess.run(["git", "diff"], cwd=repo_dir, capture_output=True, text=True)
         if not diff.stdout.strip():
@@ -265,6 +305,7 @@ async def fix_alert(payload: FixRequest):
         "annotations": payload.annotations,
         "related_traces": [t.model_dump() for t in payload.related_traces],
         "status": "pending",
+        "steps": [],
         "analysis": "",
         "pr_url": "",
         "error": "",
@@ -287,6 +328,15 @@ async def fix_alert(payload: FixRequest):
 async def get_investigations():
     with investigations_lock:
         return list(investigations)
+
+
+@app.get("/api/investigations/{investigation_id}")
+async def get_investigation(investigation_id: str):
+    with investigations_lock:
+        for inv in investigations:
+            if inv["id"] == investigation_id:
+                return inv
+    raise HTTPException(status_code=404, detail="Investigation not found")
 
 
 @app.get("/health")
