@@ -1,0 +1,30 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: monitor-agent
+  labels:
+    app: monitor-agent
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: monitor-agent
+  template:
+    metadata:
+      labels:
+        app: monitor-agent
+    spec:
+      containers:
+        - name: monitor-agent
+          image: ghcr.io/salaboy/reacting-to-ai/monitor-agent:main
+          ports:
+            - containerPort: 8082
+          env:
+            - name: FIXER_AGENT_URL
+              value: http://fixer-agent.default.svc.cluster.local:8081
+          resources:
+            requests:
+              memory: 64Mi
+              cpu: 100m
+            limits:
+              memory: 128Mi

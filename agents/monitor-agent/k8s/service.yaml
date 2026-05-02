@@ -1,0 +1,14 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: monitor-agent
+  labels:
+    app: monitor-agent
+spec:
+  type: ClusterIP
+  selector:
+    app: monitor-agent
+  ports:
+    - port: 8082
+      targetPort: 8082
+      protocol: TCP

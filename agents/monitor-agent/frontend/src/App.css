@@ -1,0 +1,123 @@
+.app {
+  max-width: 700px;
+  margin: 0 auto;
+  padding: 40px 24px;
+  font-family: system-ui, -apple-system, sans-serif;
+}
+
+h1 {
+  text-align: center;
+  margin: 0 0 8px;
+  font-size: 1.8rem;
+}
+
+.subtitle {
+  text-align: center;
+  color: #666;
+  margin: 0 0 32px;
+}
+
+.badge {
+  display: inline-block;
+  background: #e5e7eb;
+  color: #374151;
+  font-size: 0.8rem;
+  font-weight: 700;
+  padding: 2px 10px;
+  border-radius: 12px;
+  margin-left: 8px;
+}
+
+.empty {
+  text-align: center;
+  color: #999;
+  padding: 48px 0;
+}
+
+.alerts-group {
+  margin-bottom: 24px;
+}
+
+.group-title {
+  font-size: 0.85rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  margin: 0 0 12px;
+}
+
+.group-title.firing {
+  color: #dc2626;
+}
+
+.group-title.resolved {
+  color: #16a34a;
+}
+
+.alert-card {
+  padding: 14px 16px;
+  border-radius: 8px;
+  margin-bottom: 10px;
+}
+
+.alert-firing {
+  background: #fef2f2;
+  border: 1px solid #fecaca;
+}
+
+.alert-resolved {
+  background: #f0fdf4;
+  border: 1px solid #bbf7d0;
+}
+
+.alert-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 6px;
+}
+
+.alert-name {
+  font-weight: 700;
+  font-size: 0.95rem;
+}
+
+.severity {
+  font-size: 0.7rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  padding: 2px 8px;
+  border-radius: 4px;
+  background: rgba(0, 0, 0, 0.06);
+  color: #555;
+}
+
+.severity.critical {
+  background: #fee2e2;
+  color: #dc2626;
+}
+
+.severity.warning {
+  background: #fef3c7;
+  color: #d97706;
+}
+
+.alert-summary {
+  margin: 4px 0;
+  font-size: 0.9rem;
+  font-weight: 500;
+}
+
+.alert-description {
+  margin: 4px 0;
+  font-size: 0.8rem;
+  color: #666;
+}
+
+.alert-meta {
+  display: flex;
+  gap: 16px;
+  margin-top: 8px;
+  font-size: 0.75rem;
+  color: #999;
+}

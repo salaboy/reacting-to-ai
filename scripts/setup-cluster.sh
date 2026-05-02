@@ -169,7 +169,29 @@ kubectl get pods -n argocd
 echo ""
 
 # -------------------------------------------------------
-# 10. Deploy application via Argo CD
+# 10. Deploy agents
+# -------------------------------------------------------
+echo "--- Deploying Monitor Agent ---"
+kubectl apply -f "$PROJECT_ROOT/agents/monitor-agent/k8s/"
+echo "Monitor Agent deployed."
+echo ""
+
+echo "--- Deploying Fixer Agent ---"
+if kubectl get secret fixer-agent-secrets &>/dev/null; then
+  kubectl apply -f "$PROJECT_ROOT/agents/fixer-agent/k8s/"
+  echo "Fixer Agent deployed."
+else
+  echo "Skipping Fixer Agent: 'fixer-agent-secrets' secret not found."
+  echo "Create it first with:"
+  echo "  kubectl create secret generic fixer-agent-secrets \\"
+  echo "    --from-literal=anthropic-api-key=\$ANTHROPIC_API_KEY \\"
+  echo "    --from-literal=github-token=\$GITHUB_TOKEN"
+  echo "Then run: kubectl apply -f agents/fixer-agent/k8s/"
+fi
+echo ""
+
+# -------------------------------------------------------
+# 11. Deploy application via Argo CD
 # -------------------------------------------------------
 echo "--- Configuring Argo CD Application ---"
 kubectl apply -f "$PROJECT_ROOT/k8s-argocd/application.yaml"
@@ -191,6 +213,10 @@ echo ""
 echo "To access Alertmanager UI:"
 echo "  kubectl port-forward svc/prometheus-kube-prometheus-alertmanager -n monitoring 9093"
 echo "  Then open http://localhost:9093"
+echo ""
+echo "To access Monitor Agent UI:"
+echo "  kubectl port-forward svc/monitor-agent 8082"
+echo "  Then open http://localhost:8082"
 echo ""
 echo "To access Argo CD UI:"
 echo "  kubectl port-forward svc/argocd-server -n argocd 8443:443"

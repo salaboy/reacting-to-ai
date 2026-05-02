@@ -39,13 +39,13 @@ alertmanager:
         memory: 128Mi
   config:
     route:
-      receiver: reacting-to-ai-webhook
+      receiver: monitor-agent-webhook
       group_by: [alertname]
       group_wait: 10s
       group_interval: 30s
       repeat_interval: 5m
     receivers:
-      - name: reacting-to-ai-webhook
+      - name: monitor-agent-webhook
         webhook_configs:
-          - url: http://reacting-to-ai.default.svc.cluster.local/api/webhook/alerts
+          - url: http://monitor-agent.default.svc.cluster.local:8082/api/webhook/alerts
             send_resolved: true

@@ -1,0 +1,40 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: fixer-agent
+  labels:
+    app: fixer-agent
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: fixer-agent
+  template:
+    metadata:
+      labels:
+        app: fixer-agent
+    spec:
+      containers:
+        - name: fixer-agent
+          image: ghcr.io/salaboy/reacting-to-ai/fixer-agent:main
+          ports:
+            - containerPort: 8081
+          env:
+            - name: ANTHROPIC_API_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: fixer-agent-secrets
+                  key: anthropic-api-key
+            - name: GITHUB_TOKEN
+              valueFrom:
+                secretKeyRef:
+                  name: fixer-agent-secrets
+                  key: github-token
+            - name: REPO_URL
+              value: https://github.com/salaboy/reacting-to-ai.git
+          resources:
+            requests:
+              memory: 128Mi
+              cpu: 100m
+            limits:
+              memory: 256Mi
