@@ -81,6 +81,7 @@ All UIs are accessible via the NGINX Ingress Controller on `http://localhost`:
 |---|---|
 | Application | http://localhost/ |
 | Monitor Agent | http://localhost/monitor/ |
+| Fixer Agent | http://localhost/fixer/ |
 | Jaeger | http://localhost/jaeger/ui |
 | Prometheus | http://localhost/prometheus/ |
 | Alertmanager | http://localhost/alertmanager/ |

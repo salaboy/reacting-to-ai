@@ -197,3 +197,59 @@ h1 {
   color: #9ca3af;
   word-break: break-all;
 }
+
+/* Investigations */
+.inv-badge-count {
+  background: #dbeafe;
+  color: #2563eb;
+}
+
+.investigation-section {
+  margin-top: 12px;
+  padding-top: 12px;
+  border-top: 1px solid #fecaca;
+}
+
+.investigation-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 4px;
+}
+
+.investigation-title {
+  font-size: 0.8rem;
+  font-weight: 700;
+  color: #2563eb;
+  margin: 0;
+}
+
+.inv-badge {
+  font-size: 0.68rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  padding: 2px 8px;
+  border-radius: 4px;
+}
+
+.inv-status-active {
+  background: #dbeafe;
+  color: #2563eb;
+}
+
+.inv-status-error {
+  background: #fee2e2;
+  color: #dc2626;
+}
+
+.investigation-id {
+  margin: 2px 0;
+  font-size: 0.75rem;
+  color: #9ca3af;
+}
+
+.investigation-error {
+  margin: 4px 0;
+  font-size: 0.8rem;
+  color: #dc2626;
+}

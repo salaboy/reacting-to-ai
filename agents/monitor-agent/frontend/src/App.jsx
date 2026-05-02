@@ -3,20 +3,26 @@ import './App.css'
 
 function App() {
   const [alerts, setAlerts] = useState([])
+  const [investigations, setInvestigations] = useState([])
 
   useEffect(() => {
-    const fetchAlerts = async () => {
+    const fetchData = async () => {
       try {
-        const res = await fetch('/monitor/api/alerts')
-        const data = await res.json()
-        setAlerts(data || [])
+        const [alertsRes, invRes] = await Promise.all([
+          fetch('/monitor/api/alerts'),
+          fetch('/monitor/api/investigations'),
+        ])
+        const alertsData = await alertsRes.json()
+        const invData = await invRes.json()
+        setAlerts(alertsData || [])
+        setInvestigations(invData || [])
       } catch {
         // ignore fetch errors
       }
     }
 
-    fetchAlerts()
-    const interval = setInterval(fetchAlerts, 3000)
+    fetchData()
+    const interval = setInterval(fetchData, 3000)
     return () => clearInterval(interval)
   }, [])
 
@@ -27,6 +33,10 @@ function App() {
     if (us < 1000) return `${us}us`
     if (us < 1_000_000) return `${(us / 1000).toFixed(1)}ms`
     return `${(us / 1_000_000).toFixed(2)}s`
+  }
+
+  const getInvestigationForAlert = (fingerprint) => {
+    return investigations.find(inv => inv.alert_fingerprint === fingerprint)
   }
 
   const renderTraces = (traces) => {
@@ -59,12 +69,51 @@ function App() {
     )
   }
 
+  const renderInvestigation = (inv) => {
+    if (!inv) return null
+    const statusLabels = {
+      sending: 'Sending to Fixer',
+      accepted: 'Investigating',
+      error: 'Failed',
+    }
+    const statusColors = {
+      sending: 'inv-status-active',
+      accepted: 'inv-status-active',
+      error: 'inv-status-error',
+    }
+    return (
+      <div className="investigation-section">
+        <div className="investigation-header">
+          <h4 className="investigation-title">Investigation</h4>
+          <span className={`inv-badge ${statusColors[inv.status] || 'inv-status-active'}`}>
+            {statusLabels[inv.status] || inv.status}
+          </span>
+        </div>
+        {inv.fixer_response?.investigation_id && (
+          <p className="investigation-id">
+            ID: {inv.fixer_response.investigation_id}
+            {' — '}
+            <a href="/fixer/" target="_blank" rel="noopener noreferrer" className="trace-link">
+              View in Fixer Agent
+            </a>
+          </p>
+        )}
+        {inv.fixer_response?.error && (
+          <p className="investigation-error">{inv.fixer_response.error}</p>
+        )}
+      </div>
+    )
+  }
+
   return (
     <div className="app">
       <h1>Monitor Agent</h1>
       <p className="subtitle">
         Alerts received from Alertmanager
         <span className="badge">{alerts.length}</span>
+        {investigations.length > 0 && (
+          <span className="badge inv-badge-count">{investigations.length} investigation{investigations.length !== 1 ? 's' : ''}</span>
+        )}
       </p>
 
       {alerts.length === 0 && (
@@ -98,6 +147,7 @@ function App() {
                 )}
               </div>
               {renderTraces(alert.relatedTraces)}
+              {renderInvestigation(getInvestigationForAlert(alert.fingerprint))}
             </div>
           ))}
         </div>

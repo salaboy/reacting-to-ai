@@ -40,6 +40,27 @@ spec:
 apiVersion: networking.k8s.io/v1
 kind: Ingress
 metadata:
+  name: fixer-agent-ingress
+  annotations:
+    nginx.ingress.kubernetes.io/rewrite-target: /$2
+    nginx.ingress.kubernetes.io/use-regex: "true"
+spec:
+  ingressClassName: nginx
+  rules:
+    - http:
+        paths:
+          # Fixer Agent: http://localhost/fixer(/|$)(.*)
+          - path: /fixer(/|$)(.*)
+            pathType: ImplementationSpecific
+            backend:
+              service:
+                name: fixer-agent
+                port:
+                  number: 8081
+---
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
   name: jaeger-ingress
 spec:
   ingressClassName: nginx

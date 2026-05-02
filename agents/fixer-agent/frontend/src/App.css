@@ -1,0 +1,188 @@
+.app {
+  max-width: 700px;
+  margin: 0 auto;
+  padding: 40px 24px;
+  font-family: system-ui, -apple-system, sans-serif;
+}
+
+h1 {
+  text-align: center;
+  margin: 0 0 8px;
+  font-size: 1.8rem;
+}
+
+.subtitle {
+  text-align: center;
+  color: #666;
+  margin: 0 0 32px;
+}
+
+.badge {
+  display: inline-block;
+  background: #e5e7eb;
+  color: #374151;
+  font-size: 0.8rem;
+  font-weight: 700;
+  padding: 2px 10px;
+  border-radius: 12px;
+  margin-left: 8px;
+}
+
+.empty {
+  text-align: center;
+  color: #999;
+  padding: 48px 0;
+}
+
+.inv-group {
+  margin-bottom: 24px;
+}
+
+.group-title {
+  font-size: 0.85rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  margin: 0 0 12px;
+}
+
+.active-title {
+  color: #2563eb;
+}
+
+.completed-title {
+  color: #6b7280;
+}
+
+.inv-card {
+  padding: 14px 16px;
+  border-radius: 8px;
+  margin-bottom: 10px;
+}
+
+.inv-active {
+  background: #eff6ff;
+  border: 1px solid #bfdbfe;
+}
+
+.inv-completed {
+  background: #f9fafb;
+  border: 1px solid #e5e7eb;
+}
+
+.inv-error {
+  background: #fef2f2;
+  border: 1px solid #fecaca;
+}
+
+.inv-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 6px;
+}
+
+.inv-alert {
+  font-weight: 700;
+  font-size: 0.95rem;
+}
+
+.inv-status {
+  font-size: 0.7rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  padding: 2px 8px;
+  border-radius: 4px;
+}
+
+.status-pending {
+  background: #e5e7eb;
+  color: #6b7280;
+}
+
+.status-active {
+  background: #dbeafe;
+  color: #2563eb;
+}
+
+.status-success {
+  background: #dcfce7;
+  color: #16a34a;
+}
+
+.status-neutral {
+  background: #e5e7eb;
+  color: #6b7280;
+}
+
+.status-error {
+  background: #fee2e2;
+  color: #dc2626;
+}
+
+.inv-description {
+  margin: 4px 0;
+  font-size: 0.85rem;
+  color: #555;
+}
+
+.inv-service {
+  margin: 2px 0;
+  font-size: 0.8rem;
+  color: #6b7280;
+  font-weight: 500;
+}
+
+.inv-traces {
+  margin: 4px 0;
+  font-size: 0.78rem;
+  color: #9ca3af;
+}
+
+.inv-pr-link {
+  display: inline-block;
+  margin: 8px 0;
+  color: #2563eb;
+  font-weight: 600;
+  font-size: 0.85rem;
+  text-decoration: none;
+}
+
+.inv-pr-link:hover {
+  text-decoration: underline;
+}
+
+.inv-analysis {
+  margin: 8px 0 4px;
+  font-size: 0.8rem;
+}
+
+.inv-analysis summary {
+  cursor: pointer;
+  font-weight: 600;
+  color: #6b7280;
+}
+
+.inv-analysis pre {
+  margin: 8px 0 0;
+  white-space: pre-wrap;
+  font-size: 0.75rem;
+  background: white;
+  border: 1px solid #e5e7eb;
+  border-radius: 4px;
+  padding: 8px;
+  max-height: 200px;
+  overflow-y: auto;
+}
+
+.inv-error-detail summary {
+  color: #dc2626;
+}
+
+.inv-meta {
+  display: flex;
+  gap: 16px;
+  margin-top: 8px;
+  font-size: 0.73rem;
+  color: #9ca3af;
+}

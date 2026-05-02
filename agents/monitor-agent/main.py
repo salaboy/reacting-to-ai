@@ -2,7 +2,7 @@ import os
 import logging
 from datetime import datetime, timezone
 from pathlib import Path
-from threading import Lock
+from threading import Lock, Thread
 
 import requests as http_client
 from fastapi import FastAPI
@@ -40,6 +40,10 @@ class AlertmanagerWebhook(BaseModel):
 alerts_lock = Lock()
 alerts: list[dict] = []
 MAX_ALERTS = 100
+
+investigations_lock = Lock()
+investigations: list[dict] = []
+MAX_INVESTIGATIONS = 50
 
 
 def fetch_traces_for_alert(alert: Alert) -> list[dict]:
@@ -101,6 +105,57 @@ def fetch_traces_for_alert(alert: Alert) -> list[dict]:
         return []
 
 
+def request_investigation(alert_dict: dict):
+    """Send an alert with its traces to the fixer-agent for investigation."""
+    alert_name = alert_dict.get("labels", {}).get("alertname", "unknown")
+    description = alert_dict.get("annotations", {}).get("description", "")
+    if not description:
+        description = alert_dict.get("annotations", {}).get("summary", "")
+
+    payload = {
+        "alert_name": alert_name,
+        "description": description,
+        "labels": alert_dict.get("labels", {}),
+        "annotations": alert_dict.get("annotations", {}),
+        "related_traces": alert_dict.get("relatedTraces", []),
+    }
+
+    investigation = {
+        "alert_fingerprint": alert_dict.get("fingerprint", ""),
+        "alert_name": alert_name,
+        "status": "sending",
+        "fixer_response": None,
+        "createdAt": datetime.now(timezone.utc).isoformat(),
+    }
+
+    with investigations_lock:
+        investigations.append(investigation)
+        if len(investigations) > MAX_INVESTIGATIONS:
+            del investigations[: len(investigations) - MAX_INVESTIGATIONS]
+
+    inv_index = len(investigations) - 1
+
+    try:
+        resp = http_client.post(
+            f"{FIXER_AGENT_URL}/fix",
+            json=payload,
+            timeout=10,
+        )
+        resp.raise_for_status()
+        fixer_response = resp.json()
+        logger.info("Fixer agent accepted investigation: %s", fixer_response)
+
+        with investigations_lock:
+            investigations[inv_index]["status"] = "accepted"
+            investigations[inv_index]["fixer_response"] = fixer_response
+
+    except Exception as e:
+        logger.warning("Failed to request investigation from fixer-agent: %s", e)
+        with investigations_lock:
+            investigations[inv_index]["status"] = "error"
+            investigations[inv_index]["fixer_response"] = {"error": str(e)}
+
+
 @app.post("/api/webhook/alerts")
 async def receive_alerts(payload: AlertmanagerWebhook):
     logger.info(
@@ -110,6 +165,8 @@ async def receive_alerts(payload: AlertmanagerWebhook):
         payload.receiver,
     )
 
+    firing_alerts_to_investigate = []
+
     with alerts_lock:
         for alert in payload.alerts:
             alert_dict = alert.model_dump()
@@ -118,6 +175,17 @@ async def receive_alerts(payload: AlertmanagerWebhook):
             # Fetch related traces from Jaeger for firing alerts
             if alert.status == "firing":
                 alert_dict["relatedTraces"] = fetch_traces_for_alert(alert)
+
+                # Only investigate if this is a new alert (not already tracked)
+                already_investigating = False
+                with investigations_lock:
+                    for inv in investigations:
+                        if inv["alert_fingerprint"] == alert.fingerprint and inv["status"] != "error":
+                            already_investigating = True
+                            break
+
+                if not already_investigating:
+                    firing_alerts_to_investigate.append(alert_dict)
             else:
                 alert_dict["relatedTraces"] = []
 
@@ -144,6 +212,11 @@ async def receive_alerts(payload: AlertmanagerWebhook):
             alert.labels.get("service_name", "unknown"),
         )
 
+    # Request investigations in background threads
+    for alert_dict in firing_alerts_to_investigate:
+        thread = Thread(target=request_investigation, args=(alert_dict,), daemon=True)
+        thread.start()
+
     return {"status": "ok", "received": len(payload.alerts)}
 
 
@@ -151,6 +224,12 @@ async def receive_alerts(payload: AlertmanagerWebhook):
 async def get_alerts():
     with alerts_lock:
         return list(alerts)
+
+
+@app.get("/api/investigations")
+async def get_investigations():
+    with investigations_lock:
+        return list(investigations)
 
 
 @app.get("/health")
