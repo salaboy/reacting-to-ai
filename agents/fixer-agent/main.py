@@ -24,7 +24,7 @@ app = FastAPI(title="Fixer Agent")
 REPO_URL = os.getenv("REPO_URL", "https://github.com/salaboy/reacting-to-ai.git")
 GITHUB_TOKEN = os.getenv("GITHUB_TOKEN", "")
 ANTHROPIC_API_KEY = os.getenv("ANTHROPIC_API_KEY", "")
-ANTHROPIC_MODEL = os.getenv("ANTHROPIC_MODEL", "claude-sonnet-4-5-20241022")
+ANTHROPIC_MODEL = os.getenv("ANTHROPIC_MODEL", "claude-3-5-sonnet-20241022")
 
 SYSTEM_PROMPT = (
     "You are a code fixer agent. You receive alerts from a monitoring system "
