@@ -1,6 +1,9 @@
 grafana:
   enabled: false
 
+kubeEtcd:
+  enabled: false
+
 prometheus:
   prometheusSpec:
     additionalScrapeConfigs:
