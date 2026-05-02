@@ -1,15 +1,23 @@
 package main
 
 import (
+	"context"
 	"encoding/json"
 	"io/fs"
 	"log"
 	"net/http"
+	"os"
 	"sync"
 
 	"github.com/go-chi/chi/v5"
 	"github.com/go-chi/chi/v5/middleware"
 	"github.com/salaboy/reacting-to-ai/frontend"
+	"go.opentelemetry.io/contrib/instrumentation/net/http/otelhttp"
+	"go.opentelemetry.io/otel"
+	"go.opentelemetry.io/otel/exporters/otlp/otlptrace/otlptracegrpc"
+	"go.opentelemetry.io/otel/sdk/resource"
+	sdktrace "go.opentelemetry.io/otel/sdk/trace"
+	semconv "go.opentelemetry.io/otel/semconv/v1.26.0"
 )
 
 type Alert struct {
@@ -34,7 +42,40 @@ var (
 	alerts   []Alert
 )
 
+func initTracer() func() {
+	ctx := context.Background()
+
+	exporter, err := otlptracegrpc.New(ctx)
+	if err != nil {
+		log.Printf("Failed to create OTLP exporter: %v (tracing disabled)", err)
+		return func() {}
+	}
+
+	res, err := resource.New(ctx,
+		resource.WithAttributes(
+			semconv.ServiceName("reacting-to-ai"),
+		),
+	)
+	if err != nil {
+		log.Printf("Failed to create resource: %v", err)
+		res = resource.Default()
+	}
+
+	tp := sdktrace.NewTracerProvider(
+		sdktrace.WithBatcher(exporter),
+		sdktrace.WithResource(res),
+	)
+	otel.SetTracerProvider(tp)
+
+	return func() {
+		_ = tp.Shutdown(ctx)
+	}
+}
+
 func main() {
+	shutdown := initTracer()
+	defer shutdown()
+
 	r := chi.NewRouter()
 	r.Use(middleware.Logger)
 
@@ -106,6 +147,13 @@ func main() {
 	fileServer := http.FileServer(http.FS(staticFS))
 	r.Handle("/*", fileServer)
 
-	log.Println("Server starting on :8080")
-	log.Fatal(http.ListenAndServe(":8080", r))
+	// Wrap the router with OTel HTTP instrumentation
+	handler := otelhttp.NewHandler(r, "reacting-to-ai")
+
+	port := os.Getenv("PORT")
+	if port == "" {
+		port = "8080"
+	}
+	log.Printf("Server starting on :%s", port)
+	log.Fatal(http.ListenAndServe(":"+port, handler))
 }

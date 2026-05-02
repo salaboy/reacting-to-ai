@@ -13,14 +13,15 @@ spec:
     metadata:
       labels:
         app: reacting-to-ai
-      annotations:
-        instrumentation.opentelemetry.io/inject-go: "opentelemetry/instrumentation"
     spec:
       containers:
         - name: reacting-to-ai
           image: ghcr.io/salaboy/reacting-to-ai:main
           ports:
             - containerPort: 8080
+          env:
+            - name: OTEL_EXPORTER_OTLP_ENDPOINT
+              value: http://otel-collector-opentelemetry-collector.opentelemetry.svc.cluster.local:4317
           resources:
             requests:
               memory: 64Mi
