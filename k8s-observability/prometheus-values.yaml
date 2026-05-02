@@ -10,6 +10,19 @@ prometheus:
           - targets:
               - otel-collector-opentelemetry-collector.opentelemetry.svc.cluster.local:8889
 
+# Disable monitoring of control plane components that are not accessible in KinD clusters
+kubeScheduler:
+  enabled: false
+
+kubeControllerManager:
+  enabled: false
+
+kubeEtcd:
+  enabled: false
+
+kubeProxy:
+  enabled: false
+
 additionalPrometheusRulesMap:
   error-rate-alerts:
     groups:
