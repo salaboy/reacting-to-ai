@@ -55,7 +55,6 @@ config:
   connectors:
     spanmetrics:
       dimensions:
-        - name: service.name
         - name: http.method
         - name: http.status_code
         - name: http.route
