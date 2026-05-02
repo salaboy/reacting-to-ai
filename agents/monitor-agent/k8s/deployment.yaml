@@ -22,6 +22,8 @@ spec:
           env:
             - name: FIXER_AGENT_URL
               value: http://fixer-agent.default.svc.cluster.local:8081
+            - name: JAEGER_QUERY_URL
+              value: http://jaeger-query.default.svc.cluster.local:16686
           resources:
             requests:
               memory: 64Mi

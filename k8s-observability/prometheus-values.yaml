@@ -18,16 +18,16 @@ additionalPrometheusRulesMap:
           - alert: HighErrorRate
             expr: |
               (
-                sum(rate(calls_total{status_code="STATUS_CODE_ERROR"}[1m]))
+                sum by (service_name, span_name) (rate(calls_total{status_code="STATUS_CODE_ERROR"}[1m]))
                 /
-                sum(rate(calls_total[1m]))
+                sum by (service_name, span_name) (rate(calls_total[1m]))
               ) > 0.05
             for: 1m
             labels:
               severity: critical
             annotations:
-              summary: "High error rate detected"
-              description: "Error rate has exceeded 5% over the last minute (current: {{ $value | humanizePercentage }})."
+              summary: "High error rate on {{ $labels.service_name }}"
+              description: "Error rate for {{ $labels.service_name }} / {{ $labels.span_name }} has exceeded 5% over the last minute (current: {{ $value | humanizePercentage }})."
 
 alertmanager:
   enabled: true
@@ -40,7 +40,7 @@ alertmanager:
   config:
     route:
       receiver: monitor-agent-webhook
-      group_by: [alertname]
+      group_by: [alertname, service_name]
       group_wait: 10s
       group_interval: 30s
       repeat_interval: 5m

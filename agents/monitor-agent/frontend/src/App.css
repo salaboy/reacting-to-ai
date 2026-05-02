@@ -102,6 +102,13 @@ h1 {
   color: #d97706;
 }
 
+.alert-service {
+  margin: 2px 0;
+  font-size: 0.8rem;
+  color: #6b7280;
+  font-weight: 500;
+}
+
 .alert-summary {
   margin: 4px 0;
   font-size: 0.9rem;
@@ -120,4 +127,73 @@ h1 {
   margin-top: 8px;
   font-size: 0.75rem;
   color: #999;
+}
+
+/* Traces section */
+.traces-section {
+  margin-top: 12px;
+  padding-top: 12px;
+  border-top: 1px solid #fecaca;
+}
+
+.traces-title {
+  font-size: 0.8rem;
+  font-weight: 700;
+  color: #92400e;
+  margin: 0 0 8px;
+}
+
+.trace-card {
+  background: white;
+  border: 1px solid #e5e7eb;
+  border-radius: 6px;
+  padding: 10px 12px;
+  margin-bottom: 6px;
+}
+
+.trace-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 4px;
+}
+
+.trace-operation {
+  font-weight: 600;
+  font-size: 0.85rem;
+}
+
+.trace-duration {
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: #dc2626;
+  background: #fee2e2;
+  padding: 1px 6px;
+  border-radius: 3px;
+}
+
+.trace-meta {
+  display: flex;
+  gap: 12px;
+  font-size: 0.73rem;
+  color: #999;
+  align-items: center;
+}
+
+.trace-link {
+  color: #2563eb;
+  text-decoration: none;
+  font-weight: 600;
+}
+
+.trace-link:hover {
+  text-decoration: underline;
+}
+
+.trace-id {
+  display: block;
+  margin-top: 4px;
+  font-size: 0.7rem;
+  color: #9ca3af;
+  word-break: break-all;
 }
