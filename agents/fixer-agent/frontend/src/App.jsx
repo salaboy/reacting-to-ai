@@ -253,11 +253,7 @@ function App() {
         <div className="inv-group">
           <h2 className="group-title active-title">Active ({active.length})</h2>
           {active.map((inv) => (
-            <div
-              key={inv.id}
-              className="inv-card inv-active inv-card-clickable"
-              onClick={() => setSelectedId(inv.id)}
-            >
+            <div key={inv.id} className="inv-card inv-active">
               <div className="inv-header">
                 <span className="inv-alert">{inv.alert_name}</span>
                 <span className={`inv-status ${STATUS_COLORS[inv.status]}`}>
@@ -275,6 +271,9 @@ function App() {
               {inv.related_traces?.length > 0 && (
                 <p className="inv-traces">{inv.related_traces.length} related trace(s)</p>
               )}
+              <button className="inv-details-btn" onClick={() => setSelectedId(inv.id)}>
+                Details
+              </button>
             </div>
           ))}
         </div>
@@ -286,8 +285,7 @@ function App() {
           {completed.map((inv) => (
             <div
               key={inv.id}
-              className={`inv-card inv-card-clickable ${inv.status === 'error' ? 'inv-error' : 'inv-completed'}`}
-              onClick={() => setSelectedId(inv.id)}
+              className={`inv-card ${inv.status === 'error' ? 'inv-error' : 'inv-completed'}`}
             >
               <div className="inv-header">
                 <span className="inv-alert">{inv.alert_name}</span>
@@ -305,7 +303,6 @@ function App() {
                   target="_blank"
                   rel="noopener noreferrer"
                   className="inv-pr-link"
-                  onClick={(e) => e.stopPropagation()}
                 >
                   View Pull Request
                 </a>
@@ -316,6 +313,9 @@ function App() {
                   <span>Completed: {new Date(inv.completedAt).toLocaleString()}</span>
                 )}
               </div>
+              <button className="inv-details-btn" onClick={() => setSelectedId(inv.id)}>
+                Details
+              </button>
             </div>
           ))}
         </div>

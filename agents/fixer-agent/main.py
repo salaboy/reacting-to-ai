@@ -142,6 +142,8 @@ def create_pr(repo_dir: str, branch: str, alert_name: str, analysis: str) -> str
     parts = REPO_URL.rstrip("/").removesuffix(".git").split("/")
     owner, repo = parts[-2], parts[-1]
 
+    subprocess.run(["git", "config", "user.name", "fixer-agent"], cwd=repo_dir, check=True, capture_output=True)
+    subprocess.run(["git", "config", "user.email", "fixer-agent@noreply"], cwd=repo_dir, check=True, capture_output=True)
     subprocess.run(["git", "checkout", "-b", branch], cwd=repo_dir, check=True, capture_output=True)
     subprocess.run(["git", "add", "-A"], cwd=repo_dir, check=True, capture_output=True)
 

@@ -187,15 +187,23 @@ h1 {
   color: #9ca3af;
 }
 
-/* Clickable cards */
+/* Details button */
 
-.inv-card-clickable {
+.inv-details-btn {
+  display: inline-block;
+  margin-top: 10px;
+  padding: 6px 16px;
+  background: #2563eb;
+  color: white;
+  border: none;
+  border-radius: 6px;
+  font-size: 0.8rem;
+  font-weight: 600;
   cursor: pointer;
-  transition: box-shadow 0.15s;
 }
 
-.inv-card-clickable:hover {
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+.inv-details-btn:hover {
+  background: #1d4ed8;
 }
 
 /* Detail page */
