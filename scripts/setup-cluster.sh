@@ -205,7 +205,23 @@ kubectl get pods -n argocd
 echo ""
 
 # -------------------------------------------------------
-# 10. Deploy agents
+# 10. Install Argo Rollouts
+# -------------------------------------------------------
+echo "--- Installing Argo Rollouts ---"
+kubectl create namespace argo-rollouts --dry-run=client -o yaml | kubectl apply -f -
+if helm status argo-rollouts -n argo-rollouts &>/dev/null; then
+  echo "Argo Rollouts is already installed, skipping."
+else
+  helm install argo-rollouts argo/argo-rollouts \
+    --namespace argo-rollouts \
+    --wait
+fi
+echo "Argo Rollouts pods:"
+kubectl get pods -n argo-rollouts
+echo ""
+
+# -------------------------------------------------------
+# 11. Deploy agents
 # -------------------------------------------------------
 echo "--- Deploying Monitor Agent ---"
 kubectl apply -f "$PROJECT_ROOT/agents/monitor-agent/k8s/"
@@ -222,7 +238,7 @@ echo "Fixer Agent deployed."
 echo ""
 
 # -------------------------------------------------------
-# 11. Deploy application via Argo CD
+# 12. Deploy application via Argo CD
 # -------------------------------------------------------
 echo "--- Configuring Argo CD Application ---"
 kubectl apply -f "$PROJECT_ROOT/k8s-argocd/application.yaml"
@@ -230,7 +246,7 @@ echo "Argo CD Application 'reacting-to-ai' created. It will sync from k8s/ in th
 echo ""
 
 # -------------------------------------------------------
-# 12. Apply Ingress resources
+# 13. Apply Ingress resources
 # -------------------------------------------------------
 echo "--- Applying Ingress resources ---"
 kubectl apply -f "$PROJECT_ROOT/k8s-ingress/ingress.yaml"

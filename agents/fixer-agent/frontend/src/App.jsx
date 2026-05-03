@@ -268,6 +268,11 @@ function App() {
                 <span>Started: {new Date(inv.createdAt).toLocaleString()}</span>
                 <span>ID: {inv.id}</span>
               </div>
+              {inv.pr_url && (
+                <a href={inv.pr_url} target="_blank" rel="noopener noreferrer" className="inv-pr-link">
+                  View Pull Request
+                </a>
+              )}
               {inv.related_traces?.length > 0 && (
                 <p className="inv-traces">{inv.related_traces.length} related trace(s)</p>
               )}
