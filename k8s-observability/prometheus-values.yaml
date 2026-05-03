@@ -32,6 +32,12 @@ kubeProxy:
 kubeEtcd:
   enabled: false
 
+# Disable node time-related rules for KinD clusters
+# KinD containers share the host clock and don't manage NTP independently
+defaultRules:
+  rules:
+    time: false
+
 additionalPrometheusRulesMap:
   error-rate-alerts:
     groups:
@@ -111,7 +117,6 @@ alertmanager:
         - receiver: "null"
           matchers:
             - alertname = "InfoInhibitor"
-            - alertname = "NodeClockNotSynchronising"
     receivers:
       - name: "null"
       - name: monitor-agent-webhook
