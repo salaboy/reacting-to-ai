@@ -5,6 +5,7 @@ import logging
 import asyncio
 from datetime import datetime, timezone
 from threading import Thread, Lock
+from pathlib import Path
 
 import requests
 from fastapi import FastAPI, HTTPException
@@ -14,7 +15,7 @@ from langchain_anthropic import ChatAnthropic
 from langgraph.prebuilt import create_react_agent
 from langchain_core.tools import tool
 from langchain_core.messages import AIMessage, ToolMessage
-from playwright.sync_api import sync_playwright
+from playwright.async_api import async_playwright
 
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger("business-agent")
@@ -58,34 +59,16 @@ validations: list[dict] = []
 MAX_VALIDATIONS = 50
 
 
-def create_tools(base_url: str):
-    browser_state = {"browser": None, "page": None, "console_errors": []}
-
-    def _ensure_browser():
-        if browser_state["browser"] is None:
-            pw = sync_playwright().start()
-            browser_state["browser"] = pw.chromium.launch(headless=True)
-            page = browser_state["browser"].new_page()
-            page.on("console", lambda msg: (
-                browser_state["console_errors"].append(
-                    f"[{msg.type}] {msg.text}"
-                ) if msg.type == "error" else None
-            ))
-            page.on("pageerror", lambda err: (
-                browser_state["console_errors"].append(f"[page-error] {err}")
-            ))
-            browser_state["page"] = page
-        return browser_state["page"]
-
+def create_tools(browser_state: dict):
     @tool
-    def navigate(url: str) -> str:
+    async def navigate(url: str) -> str:
         """Navigate the browser to a URL. Returns the page title and status."""
-        page = _ensure_browser()
+        page = browser_state["page"]
         browser_state["console_errors"].clear()
         try:
-            response = page.goto(url, wait_until="networkidle", timeout=30000)
+            response = await page.goto(url, wait_until="networkidle", timeout=30000)
             status = response.status if response else "unknown"
-            title = page.title()
+            title = await page.title()
             return (
                 f"Navigated to: {url}\n"
                 f"Status: {status}\n"
@@ -96,15 +79,15 @@ def create_tools(base_url: str):
             return f"Error navigating to {url}: {e}"
 
     @tool
-    def get_page_content() -> str:
+    async def get_page_content() -> str:
         """Get the text content of the current page."""
-        page = _ensure_browser()
+        page = browser_state["page"]
         try:
-            content = page.inner_text("body")
+            content = await page.inner_text("body")
             if len(content) > 10000:
                 content = content[:10000] + "\n... (truncated)"
             url = page.url
-            title = page.title()
+            title = await page.title()
             return (
                 f"URL: {url}\nTitle: {title}\n\n"
                 f"Page content:\n{content}"
@@ -113,11 +96,11 @@ def create_tools(base_url: str):
             return f"Error reading page content: {e}"
 
     @tool
-    def list_interactive_elements() -> str:
+    async def list_interactive_elements() -> str:
         """List all interactive elements on the current page (links, buttons, inputs, forms)."""
-        page = _ensure_browser()
+        page = browser_state["page"]
         try:
-            elements = page.evaluate("""() => {
+            elements = await page.evaluate("""() => {
                 const results = [];
 
                 document.querySelectorAll('a[href]').forEach((el, i) => {
@@ -170,63 +153,65 @@ def create_tools(base_url: str):
             return f"Error listing elements: {e}"
 
     @tool
-    def click_element(selector: str) -> str:
+    async def click_element(selector: str) -> str:
         """Click an element on the page using a CSS selector or text selector."""
-        page = _ensure_browser()
+        page = browser_state["page"]
         errors_before = len(browser_state["console_errors"])
         try:
-            page.click(selector, timeout=10000)
-            page.wait_for_load_state("networkidle", timeout=15000)
+            await page.click(selector, timeout=10000)
+            await page.wait_for_load_state("networkidle", timeout=15000)
         except Exception as e:
             return f"Error clicking '{selector}': {e}"
 
         new_errors = browser_state["console_errors"][errors_before:]
+        title = await page.title()
         result = (
             f"Clicked: {selector}\n"
             f"Current URL: {page.url}\n"
-            f"Page title: {page.title()}"
+            f"Page title: {title}"
         )
         if new_errors:
             result += f"\nConsole errors after click:\n" + "\n".join(new_errors)
         return result
 
     @tool
-    def fill_input(selector: str, value: str) -> str:
+    async def fill_input(selector: str, value: str) -> str:
         """Fill an input field with a value using a CSS selector."""
-        page = _ensure_browser()
+        page = browser_state["page"]
         try:
-            page.fill(selector, value, timeout=10000)
+            await page.fill(selector, value, timeout=10000)
             return f"Filled '{selector}' with: {value}"
         except Exception as e:
             return f"Error filling '{selector}': {e}"
 
     @tool
-    def submit_form(selector: str = "form") -> str:
+    async def submit_form(selector: str = "form") -> str:
         """Submit a form. Provide the form selector or defaults to the first form."""
-        page = _ensure_browser()
+        page = browser_state["page"]
         errors_before = len(browser_state["console_errors"])
         try:
-            page.evaluate(f'document.querySelector("{selector}").submit()')
-            page.wait_for_load_state("networkidle", timeout=15000)
+            await page.evaluate(f'document.querySelector("{selector}").submit()')
+            await page.wait_for_load_state("networkidle", timeout=15000)
         except Exception as e:
             return f"Error submitting form '{selector}': {e}"
 
         new_errors = browser_state["console_errors"][errors_before:]
+        title = await page.title()
         result = (
             f"Submitted form: {selector}\n"
             f"Current URL: {page.url}\n"
-            f"Page title: {page.title()}"
+            f"Page title: {title}"
         )
         if new_errors:
             result += f"\nConsole errors after submit:\n" + "\n".join(new_errors)
         return result
 
     @tool
-    def check_for_errors() -> str:
+    async def check_for_errors() -> str:
         """Check the current page for visible error messages and console errors."""
-        page = _ensure_browser()
+        page = browser_state["page"]
         try:
-            visible_errors = page.evaluate("""() => {
+            visible_errors = await page.evaluate("""() => {
                 const errorPatterns = [
                     '[class*="error"]', '[class*="Error"]',
                     '[class*="alert-danger"]', '[class*="alert-error"]',
@@ -267,24 +252,16 @@ def create_tools(base_url: str):
         return "\n".join(parts)
 
     @tool
-    def get_current_url() -> str:
+    async def get_current_url() -> str:
         """Get the current URL of the browser."""
-        page = _ensure_browser()
+        page = browser_state["page"]
         return f"Current URL: {page.url}"
 
-    def cleanup():
-        if browser_state["browser"]:
-            try:
-                browser_state["browser"].close()
-            except Exception:
-                pass
-
-    tools = [
+    return [
         navigate, get_page_content, list_interactive_elements,
         click_element, fill_input, submit_form, check_for_errors,
         get_current_url,
     ]
-    return tools, cleanup
 
 
 def create_agent(tools):
@@ -339,11 +316,26 @@ def update_validation(validation_id: str, updates: dict):
                 break
 
 
-def run_validation(validation_id: str, payload: ValidateRequest):
+async def run_validation(validation_id: str, payload: ValidateRequest):
     update_validation(validation_id, {"status": "browsing"})
 
-    tools, cleanup = create_tools(payload.url)
+    pw = await async_playwright().start()
+    browser = await pw.chromium.launch(headless=True)
+    browser_state = {"page": None, "console_errors": []}
+
     try:
+        page = await browser.new_page()
+        page.on("console", lambda msg: (
+            browser_state["console_errors"].append(
+                f"[{msg.type}] {msg.text}"
+            ) if msg.type == "error" else None
+        ))
+        page.on("pageerror", lambda err: (
+            browser_state["console_errors"].append(f"[page-error] {err}")
+        ))
+        browser_state["page"] = page
+
+        tools = create_tools(browser_state)
         agent = create_agent(tools)
 
         description_context = ""
@@ -365,7 +357,7 @@ def run_validation(validation_id: str, payload: ValidateRequest):
         )
 
         all_messages = []
-        for chunk in agent.stream(
+        async for chunk in agent.astream(
             {"messages": [{"role": "user", "content": user_prompt}]},
         ):
             for node_output in chunk.values():
@@ -446,7 +438,12 @@ def run_validation(validation_id: str, payload: ValidateRequest):
             "completedAt": datetime.now(timezone.utc).isoformat(),
         })
     finally:
-        cleanup()
+        await browser.close()
+        await pw.stop()
+
+
+def _run_validation_in_thread(validation_id: str, payload: ValidateRequest):
+    asyncio.run(run_validation(validation_id, payload))
 
 
 @app.post("/validate")
@@ -472,7 +469,7 @@ async def validate_url(payload: ValidateRequest):
         if len(validations) > MAX_VALIDATIONS:
             del validations[: len(validations) - MAX_VALIDATIONS]
 
-    thread = Thread(target=run_validation, args=(validation_id, payload), daemon=True)
+    thread = Thread(target=_run_validation_in_thread, args=(validation_id, payload), daemon=True)
     thread.start()
 
     return {"status": "accepted", "validation_id": validation_id}
@@ -499,8 +496,6 @@ async def health():
 
 
 # Serve the React frontend
-from pathlib import Path
-
 static_dir = Path(__file__).parent / "static"
 if static_dir.is_dir():
     app.mount("/", StaticFiles(directory=static_dir, html=True), name="frontend")

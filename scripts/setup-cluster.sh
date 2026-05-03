@@ -237,6 +237,15 @@ kubectl apply -f "$PROJECT_ROOT/agents/fixer-agent/k8s/"
 echo "Fixer Agent deployed."
 echo ""
 
+echo "--- Deploying Business Agent ---"
+kubectl create secret generic business-agent-secrets \
+  --from-literal=anthropic-api-key="$ANTHROPIC_API_KEY" \
+  --from-literal=github-token="$GITHUB_TOKEN" \
+  --dry-run=client -o yaml | kubectl apply -f -
+kubectl apply -f "$PROJECT_ROOT/agents/business-agent/k8s/"
+echo "Business Agent deployed."
+echo ""
+
 # -------------------------------------------------------
 # 12. Deploy application via Argo CD
 # -------------------------------------------------------
@@ -262,6 +271,7 @@ echo ""
 echo "  Application:    http://localhost/"
 echo "  Monitor Agent:  http://localhost/monitor/"
 echo "  Fixer Agent:    http://localhost/fixer/"
+echo "  Business Agent: http://localhost/business/"
 echo "  Jaeger:         http://localhost/jaeger/ui"
 echo "  Prometheus:     http://localhost/prometheus/"
 echo "  Alertmanager:   http://localhost/alertmanager/"
