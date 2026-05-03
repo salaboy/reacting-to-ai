@@ -12,6 +12,13 @@ prometheus:
         static_configs:
           - targets:
               - otel-collector-opentelemetry-collector.opentelemetry.svc.cluster.local:8889
+    resources:
+      requests:
+        memory: 400Mi
+        cpu: 250m
+      limits:
+        memory: 800Mi
+        cpu: 500m
 
 # Disable default Kubernetes component monitoring for KinD clusters
 # KinD does not expose these endpoints by default
@@ -36,7 +43,7 @@ additionalPrometheusRulesMap:
   error-rate-alerts:
     groups:
       - name: reacting-to-ai
-        interval: 5s
+        interval: 30s
         rules:
           - alert: HighErrorRate
             expr: |
@@ -111,7 +118,12 @@ alertmanager:
         - receiver: "null"
           matchers:
             - alertname = "InfoInhibitor"
+        - receiver: "null"
+          matchers:
             - alertname = "NodeClockNotSynchronising"
+        - receiver: "null"
+          matchers:
+            - alertname = "PrometheusMissingRuleEvaluations"
     receivers:
       - name: "null"
       - name: monitor-agent-webhook
