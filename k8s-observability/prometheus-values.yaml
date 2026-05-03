@@ -111,7 +111,15 @@ alertmanager:
         - receiver: "null"
           matchers:
             - alertname = "InfoInhibitor"
+        - receiver: "null"
+          matchers:
             - alertname = "NodeClockNotSynchronising"
+        - receiver: "null"
+          matchers:
+            - alertname =~ "Prometheus.*"
+        - receiver: "null"
+          matchers:
+            - alertname =~ "Alertmanager.*"
     receivers:
       - name: "null"
       - name: monitor-agent-webhook
