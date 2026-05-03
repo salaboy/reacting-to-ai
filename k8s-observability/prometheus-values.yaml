@@ -111,7 +111,6 @@ alertmanager:
         - receiver: "null"
           matchers:
             - alertname = "InfoInhibitor"
-            - alertname = "NodeClockNotSynchronising"
     receivers:
       - name: "null"
       - name: monitor-agent-webhook
