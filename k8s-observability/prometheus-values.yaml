@@ -13,6 +13,11 @@ prometheus:
           - targets:
               - otel-collector-opentelemetry-collector.opentelemetry.svc.cluster.local:8889
 
+# Disable default Kubernetes component monitoring for KinD clusters
+# KinD does not expose these endpoints by default
+kubeApiServer:
+  enabled: false
+
 # Disable control plane component monitoring for KinD cluster
 # These components are not exposed in KinD and will cause false alerts
 kubeControllerManager:
