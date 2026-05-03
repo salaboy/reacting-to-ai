@@ -1,6 +1,9 @@
 grafana:
   enabled: false
 
+kubeEtcd:
+  enabled: false
+
 prometheus:
   prometheusSpec:
     additionalScrapeConfigs:
@@ -14,13 +17,19 @@ prometheus:
 # KinD does not expose these endpoints by default
 kubeApiServer:
   enabled: false
+
+# Disable control plane component monitoring for KinD cluster
+# These components are not exposed in KinD and will cause false alerts
 kubeControllerManager:
   enabled: false
+
 kubeScheduler:
   enabled: false
-kubeEtcd:
-  enabled: false
+
 kubeProxy:
+  enabled: false
+
+kubeEtcd:
   enabled: false
 
 additionalPrometheusRulesMap:
