@@ -1,6 +1,9 @@
 grafana:
   enabled: false
 
+kubeEtcd:
+  enabled: false
+
 prometheus:
   prometheusSpec:
     additionalScrapeConfigs:
@@ -9,6 +12,25 @@ prometheus:
         static_configs:
           - targets:
               - otel-collector-opentelemetry-collector.opentelemetry.svc.cluster.local:8889
+
+# Disable default Kubernetes component monitoring for KinD clusters
+# KinD does not expose these endpoints by default
+kubeApiServer:
+  enabled: false
+
+# Disable control plane component monitoring for KinD cluster
+# These components are not exposed in KinD and will cause false alerts
+kubeControllerManager:
+  enabled: false
+
+kubeScheduler:
+  enabled: false
+
+kubeProxy:
+  enabled: false
+
+kubeEtcd:
+  enabled: false
 
 additionalPrometheusRulesMap:
   error-rate-alerts:
@@ -89,6 +111,7 @@ alertmanager:
         - receiver: "null"
           matchers:
             - alertname = "InfoInhibitor"
+            - alertname = "NodeClockNotSynchronising"
     receivers:
       - name: "null"
       - name: monitor-agent-webhook
