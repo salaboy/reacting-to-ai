@@ -36,7 +36,7 @@ additionalPrometheusRulesMap:
   error-rate-alerts:
     groups:
       - name: reacting-to-ai
-        interval: 5s
+        interval: 15s
         rules:
           - alert: HighErrorRate
             expr: |
