@@ -176,16 +176,24 @@ async def receive_alerts(payload: AlertmanagerWebhook):
             if alert.status == "firing":
                 alert_dict["relatedTraces"] = fetch_traces_for_alert(alert)
 
-                # Only investigate if this is a new alert (not already tracked)
-                already_investigating = False
-                with investigations_lock:
-                    for inv in investigations:
-                        if inv["alert_fingerprint"] == alert.fingerprint and inv["status"] != "error":
-                            already_investigating = True
-                            break
+                # Only investigate alerts with service_name (application alerts)
+                service_name = alert.labels.get("service_name", "")
+                if service_name:
+                    # Only investigate if this is a new alert (not already tracked)
+                    already_investigating = False
+                    with investigations_lock:
+                        for inv in investigations:
+                            if inv["alert_fingerprint"] == alert.fingerprint and inv["status"] != "error":
+                                already_investigating = True
+                                break
 
-                if not already_investigating:
-                    firing_alerts_to_investigate.append(alert_dict)
+                    if not already_investigating:
+                        firing_alerts_to_investigate.append(alert_dict)
+                else:
+                    logger.info(
+                        "Skipping investigation for system alert without service_name: %s",
+                        alert.labels.get("alertname", "unknown"),
+                    )
             else:
                 alert_dict["relatedTraces"] = []
 
