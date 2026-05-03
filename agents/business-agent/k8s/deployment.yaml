@@ -1,0 +1,40 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: business-agent
+  labels:
+    app: business-agent
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: business-agent
+  template:
+    metadata:
+      labels:
+        app: business-agent
+    spec:
+      containers:
+        - name: business-agent
+          image: ghcr.io/salaboy/reacting-to-ai/business-agent:main
+          ports:
+            - containerPort: 8083
+          env:
+            - name: ANTHROPIC_API_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: business-agent-secrets
+                  key: anthropic-api-key
+            - name: GITHUB_TOKEN
+              valueFrom:
+                secretKeyRef:
+                  name: business-agent-secrets
+                  key: github-token
+            - name: REPO_URL
+              value: https://github.com/salaboy/reacting-to-ai.git
+          resources:
+            requests:
+              memory: 256Mi
+              cpu: 100m
+            limits:
+              memory: 512Mi

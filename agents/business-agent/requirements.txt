@@ -1,0 +1,7 @@
+fastapi==0.115.12
+uvicorn==0.34.2
+langchain>=1.2
+langchain-anthropic>=1.4
+langgraph>=1.1
+requests>=2.32
+playwright>=1.52

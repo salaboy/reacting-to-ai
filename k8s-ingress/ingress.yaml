@@ -61,6 +61,27 @@ spec:
 apiVersion: networking.k8s.io/v1
 kind: Ingress
 metadata:
+  name: business-agent-ingress
+  annotations:
+    nginx.ingress.kubernetes.io/rewrite-target: /$2
+    nginx.ingress.kubernetes.io/use-regex: "true"
+spec:
+  ingressClassName: nginx
+  rules:
+    - http:
+        paths:
+          # Business Agent: http://localhost/business(/|$)(.*)
+          - path: /business(/|$)(.*)
+            pathType: ImplementationSpecific
+            backend:
+              service:
+                name: business-agent
+                port:
+                  number: 8083
+---
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
   name: jaeger-ingress
 spec:
   ingressClassName: nginx
