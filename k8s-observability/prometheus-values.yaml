@@ -36,7 +36,7 @@ additionalPrometheusRulesMap:
   error-rate-alerts:
     groups:
       - name: reacting-to-ai
-        interval: 5s
+        interval: 30s
         rules:
           - alert: HighErrorRate
             expr: |
@@ -50,7 +50,7 @@ additionalPrometheusRulesMap:
           - alert: InfoInhibitor
             expr: |
               ALERTS{severity="info"} == 1
-              unless on(namespace) (ALERTS{alertname!="InfoInhibitor", severity=~"warning|critical"} == 1)
+              unless on(namespace) (ALERTS{severity=~"warning|critical"} == 1)
             labels:
               severity: none
             annotations:
