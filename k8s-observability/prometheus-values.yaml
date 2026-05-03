@@ -6,6 +6,13 @@ kubeEtcd:
 
 prometheus:
   prometheusSpec:
+    resources:
+      requests:
+        cpu: 200m
+        memory: 512Mi
+      limits:
+        cpu: 1000m
+        memory: 1Gi
     additionalScrapeConfigs:
       - job_name: otel-collector-spanmetrics
         scrape_interval: 5s
@@ -36,7 +43,7 @@ additionalPrometheusRulesMap:
   error-rate-alerts:
     groups:
       - name: reacting-to-ai
-        interval: 5s
+        interval: 30s
         rules:
           - alert: HighErrorRate
             expr: |
