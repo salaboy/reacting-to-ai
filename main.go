@@ -37,6 +37,13 @@ type Transaction struct {
 	Category    string  `json:"category"`
 }
 
+type TransferRequest struct {
+	FromAccount string  `json:"from_account"`
+	ToAccount   string  `json:"to_account"`
+	Amount      float64 `json:"amount"`
+	Description string  `json:"description"`
+}
+
 var accounts = []Account{
 	{ID: "acc-001", Name: "Main Checking", Type: "checking", Balance: 4825.50, Currency: "USD"},
 	{ID: "acc-002", Name: "Savings", Type: "savings", Balance: 12340.00, Currency: "USD"},
@@ -137,14 +144,36 @@ func main() {
 	})
 
 	r.Post("/api/transfers", func(w http.ResponseWriter, r *http.Request) {
+		var transferReq TransferRequest
+		if err := json.NewDecoder(r.Body).Decode(&transferReq); err != nil {
+			w.Header().Set("Content-Type", "application/json")
+			w.WriteHeader(http.StatusBadRequest)
+			json.NewEncoder(w).Encode(map[string]string{
+				"status":  "error",
+				"message": "Invalid request body",
+			})
+			return
+		}
+
+		// Validate transfer amount
+		if transferReq.Amount <= 0 {
+			w.Header().Set("Content-Type", "application/json")
+			w.WriteHeader(http.StatusBadRequest)
+			json.NewEncoder(w).Encode(map[string]string{
+				"status":  "error",
+				"message": "Transfer amount must be greater than zero",
+			})
+			return
+		}
+
 		// Simulate processing delay
-		time.Sleep(500 * time.Millisecond)
+		time.Sleep(100 * time.Millisecond)
 
 		w.Header().Set("Content-Type", "application/json")
-		w.WriteHeader(http.StatusInternalServerError)
+		w.WriteHeader(http.StatusOK)
 		json.NewEncoder(w).Encode(map[string]string{
-			"status":  "error",
-			"message": "Transfer service unavailable: upstream payment gateway timeout",
+			"status":  "success",
+			"message": "Transfer completed successfully",
 		})
 	})
 
