@@ -92,6 +92,9 @@ alertmanager:
         - receiver: "null"
           matchers:
             - alertname = "Watchdog"
+        - receiver: "null"
+          matchers:
+            - alertname = "NodeClockNotSynchronising"
     receivers:
       - name: "null"
       - name: monitor-agent-webhook
