@@ -7,6 +7,7 @@ const STATUS_LABELS = {
   investigating: 'Investigating',
   creating_pr: 'Creating PR',
   pr_created: 'PR Created',
+  existing_pr_found: 'Existing PR Found',
   no_fix_needed: 'No Fix Needed',
   error: 'Error',
 }
@@ -17,6 +18,7 @@ const STATUS_COLORS = {
   investigating: 'status-active',
   creating_pr: 'status-active',
   pr_created: 'status-success',
+  existing_pr_found: 'status-neutral',
   no_fix_needed: 'status-neutral',
   error: 'status-error',
 }
