@@ -45,7 +45,12 @@ SYSTEM_PROMPT = (
     "Be thorough and systematic. Try clicking every button, following every link, "
     "and submitting every form you find. Report any errors, broken elements, or "
     "unexpected behaviors you encounter.\n\n"
-    "IMPORTANT: You expect ZERO errors. Any error is a finding that must be reported."
+    "IMPORTANT TIPS:\n"
+    "- For <select> dropdowns, use the select_option tool (not fill_input)\n"
+    "- To submit forms in modern web apps (React, Vue, etc.), click the submit button "
+    "using click_element instead of using submit_form, so that the app's event handlers fire correctly\n"
+    "- After submitting a form, always check the page content and check_for_errors to see the result\n"
+    "- You expect ZERO errors. Any error is a finding that must be reported."
 )
 
 
@@ -207,6 +212,25 @@ def create_tools(browser_state: dict):
         return result
 
     @tool
+    async def select_option(selector: str, value: str = "", label: str = "") -> str:
+        """Select an option from a <select> dropdown element.
+        Use either value (the option's value attribute) or label (the visible text).
+        Example: select_option('select[name="account"]', label='Savings')
+        """
+        page = browser_state["page"]
+        try:
+            if label:
+                await page.select_option(selector, label=label, timeout=10000)
+                return f"Selected option with label '{label}' in '{selector}'"
+            elif value:
+                await page.select_option(selector, value=value, timeout=10000)
+                return f"Selected option with value '{value}' in '{selector}'"
+            else:
+                return "Error: provide either 'value' or 'label' to select an option."
+        except Exception as e:
+            return f"Error selecting option in '{selector}': {e}"
+
+    @tool
     async def check_for_errors() -> str:
         """Check the current page for visible error messages and console errors."""
         page = browser_state["page"]
@@ -259,8 +283,8 @@ def create_tools(browser_state: dict):
 
     return [
         navigate, get_page_content, list_interactive_elements,
-        click_element, fill_input, submit_form, check_for_errors,
-        get_current_url,
+        click_element, fill_input, select_option, submit_form,
+        check_for_errors, get_current_url,
     ]
 
 
