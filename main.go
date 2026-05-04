@@ -140,22 +140,23 @@ func main() {
 		time.Sleep(300 * time.Millisecond)
 
 		w.Header().Set("Content-Type", "application/json")
-		w.WriteHeader(http.StatusInternalServerError)
+		w.WriteHeader(http.StatusOK)
 		json.NewEncoder(w).Encode(map[string]string{
-			"status":  "error",
-			"message": "Support service unavailable: representative directory service unreachable",
+			"status":  "success",
+			"message": "Support request submitted successfully",
+			"ticket":  "TICKET-" + time.Now().Format("20060102150405"),
 		})
 	})
 
 	r.Post("/api/transfers", func(w http.ResponseWriter, r *http.Request) {
-		// Simulate processing delay
 		time.Sleep(500 * time.Millisecond)
 
 		w.Header().Set("Content-Type", "application/json")
-		w.WriteHeader(http.StatusInternalServerError)
+		w.WriteHeader(http.StatusOK)
 		json.NewEncoder(w).Encode(map[string]string{
-			"status":  "error",
-			"message": "Transfer service unavailable: upstream payment gateway timeout",
+			"status":        "success",
+			"message":       "Transfer completed successfully",
+			"transactionId": "TXN-" + time.Now().Format("20060102150405"),
 		})
 	})
 
