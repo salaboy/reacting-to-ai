@@ -1,22 +1,22 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: reacting-to-ai
+  name: homebanking-app
   labels:
-    app: reacting-to-ai
+    app: homebanking-app
 spec:
   replicas: 1
   selector:
     matchLabels:
-      app: reacting-to-ai
+      app: homebanking-app
   template:
     metadata:
       labels:
-        app: reacting-to-ai
+        app: homebanking-app
     spec:
       containers:
-        - name: reacting-to-ai
-          image: ghcr.io/salaboy/reacting-to-ai:main
+        - name: homebanking-app
+          image: ghcr.io/salaboy/homebanking-app:main
           ports:
             - containerPort: 8080
           env:

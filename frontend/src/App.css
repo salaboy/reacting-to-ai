@@ -1,297 +1,934 @@
-.app {
-  max-width: 700px;
-  margin: 0 auto;
-  padding: 32px 24px;
-  font-family: system-ui, -apple-system, sans-serif;
-  color: #1a1a2e;
+/* ============================================================
+   HomeBanking Pro 98 — Windows CE PDA / Mobile Retro Theme
+   ============================================================ */
+
+@import url('https://fonts.googleapis.com/css2?family=Pixelify+Sans:wght@400;700&display=swap');
+
+:root {
+  --win-bg: #c0c0c0;
+  --win-dark: #808080;
+  --win-darker: #404040;
+  --win-light: #dfdfdf;
+  --win-white: #ffffff;
+  --win-black: #000000;
+  --title-blue: #000080;
+  --title-blue-light: #1084d0;
+  --desktop-teal: #008080;
+  --highlight: #000080;
+  --highlight-text: #ffffff;
+  --field-bg: #ffffff;
+  --raised: inset 1px 1px 0 var(--win-white), inset -1px -1px 0 var(--win-black), inset 2px 2px 0 var(--win-light), inset -2px -2px 0 var(--win-dark);
+  --sunken: inset 1px 1px 0 var(--win-dark), inset -1px -1px 0 var(--win-white), inset 2px 2px 0 var(--win-black), inset -2px -2px 0 var(--win-light);
+  --font: 'Pixelify Sans', 'MS Sans Serif', 'Microsoft Sans Serif', Tahoma, Geneva, sans-serif;
+
+  /* Phone dimensions */
+  --phone-width: 380px;
+  --phone-radius: 24px;
+  --bezel: #2a2a2e;
+  --bezel-light: #3a3a40;
+  --bezel-dark: #1a1a1e;
+  --screen-gap: 16px;
 }
 
-/* Header */
-.header {
-  margin-bottom: 32px;
-}
+* { box-sizing: border-box; }
 
-.header h1 {
-  margin: 0 0 16px;
-  font-size: 1.75rem;
-  color: #0f172a;
-}
-
-.nav {
+/* ==========================
+   DESKTOP (background)
+   ========================== */
+.desktop {
+  width: 100vw;
+  height: 100vh;
+  background: var(--desktop-teal);
   display: flex;
-  gap: 8px;
-  border-bottom: 2px solid #e2e8f0;
-  padding-bottom: 0;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+  font-family: var(--font);
 }
 
-.nav-btn {
-  padding: 10px 20px;
-  font-size: 0.95rem;
-  font-weight: 600;
-  border: none;
-  background: none;
-  cursor: pointer;
-  color: #64748b;
-  border-bottom: 2px solid transparent;
-  margin-bottom: -2px;
-  transition: color 0.2s, border-color 0.2s;
-}
-
-.nav-btn:hover {
-  color: #1e40af;
-}
-
-.nav-btn.active {
-  color: #1e40af;
-  border-bottom-color: #1e40af;
-}
-
-/* Loading */
-.loading {
-  text-align: center;
-  color: #64748b;
-  margin-top: 48px;
-}
-
-/* Accounts */
-.accounts-list {
+/* ==========================
+   PHONE DEVICE
+   ========================== */
+.phone {
+  width: var(--phone-width);
+  max-height: 96vh;
+  background: var(--bezel);
+  border-radius: var(--phone-radius);
   display: flex;
   flex-direction: column;
+  box-shadow:
+    inset 1px 1px 0 var(--bezel-light),
+    inset -1px -1px 0 var(--bezel-dark),
+    4px 8px 24px rgba(0, 0, 0, 0.5),
+    0 0 0 2px var(--bezel-dark);
+  position: relative;
+  user-select: none;
+}
+
+/* Antenna */
+.phone-antenna {
+  width: 10px;
+  height: 30px;
+  background: linear-gradient(180deg, #555, var(--bezel));
+  border-radius: 4px 4px 0 0;
+  position: absolute;
+  top: -28px;
+  right: 50px;
+  box-shadow: inset 1px 0 0 #666, inset -1px 0 0 #222;
+}
+
+/* Top bezel */
+.phone-top-bezel {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 16px 0 10px;
+  gap: 6px;
+  flex-shrink: 0;
+}
+
+.phone-speaker {
+  width: 50px;
+  height: 6px;
+  background: #111;
+  border-radius: 3px;
+  box-shadow: inset 0 1px 2px rgba(0,0,0,0.8);
+}
+
+.phone-brand {
+  font-family: var(--font);
+  font-size: 10px;
+  font-weight: 700;
+  color: #888;
+  letter-spacing: 2px;
+  text-transform: uppercase;
+}
+
+/* Phone screen */
+.phone-screen {
+  margin: 0 var(--screen-gap);
+  flex: 1;
+  min-height: 0;
+  display: flex;
+  position: relative;
+  border: 2px solid #111;
+  box-shadow: inset 0 0 6px rgba(0,0,0,0.4);
+}
+
+/* Bottom bezel */
+.phone-bottom-bezel {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 10px;
+  padding: 14px 0 18px;
+  flex-shrink: 0;
+}
+
+/* D-pad */
+.phone-dpad {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.dpad-ring {
+  width: 64px;
+  height: 64px;
+  background: #222;
+  border-radius: 50%;
+  position: relative;
+  box-shadow:
+    inset 0 2px 4px rgba(255,255,255,0.08),
+    0 2px 4px rgba(0,0,0,0.6);
+}
+
+.dpad-center {
+  position: absolute;
+  width: 18px;
+  height: 18px;
+  background: #444;
+  border-radius: 50%;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  box-shadow: inset 0 1px 2px rgba(255,255,255,0.1);
+}
+
+.dpad-up, .dpad-down, .dpad-left, .dpad-right {
+  position: absolute;
+  width: 0;
+  height: 0;
+}
+
+.dpad-up {
+  border-left: 5px solid transparent;
+  border-right: 5px solid transparent;
+  border-bottom: 6px solid #666;
+  top: 8px;
+  left: 50%;
+  transform: translateX(-50%);
+}
+
+.dpad-down {
+  border-left: 5px solid transparent;
+  border-right: 5px solid transparent;
+  border-top: 6px solid #666;
+  bottom: 8px;
+  left: 50%;
+  transform: translateX(-50%);
+}
+
+.dpad-left {
+  border-top: 5px solid transparent;
+  border-bottom: 5px solid transparent;
+  border-right: 6px solid #666;
+  left: 8px;
+  top: 50%;
+  transform: translateY(-50%);
+}
+
+.dpad-right {
+  border-top: 5px solid transparent;
+  border-bottom: 5px solid transparent;
+  border-left: 6px solid #666;
+  right: 8px;
+  top: 50%;
+  transform: translateY(-50%);
+}
+
+/* Hardware buttons */
+.phone-hw-buttons {
+  display: flex;
   gap: 12px;
 }
 
-.account-card {
+.hw-btn {
+  width: 28px;
+  height: 12px;
+  background: #333;
+  border-radius: 3px;
+  box-shadow:
+    inset 0 1px 0 rgba(255,255,255,0.08),
+    0 1px 2px rgba(0,0,0,0.5);
+}
+
+.hw-btn.wide {
+  width: 48px;
+}
+
+/* ==========================
+   WIN95 WINDOW (inside phone screen)
+   ========================== */
+.win95-window {
+  flex: 1;
+  background: var(--win-bg);
   display: flex;
-  justify-content: space-between;
+  flex-direction: column;
+  min-height: 0;
+  font-family: var(--font);
+  font-size: 11px;
+  color: var(--win-black);
+  position: relative;
+}
+
+/* Title Bar */
+.title-bar {
+  background: linear-gradient(90deg, var(--title-blue), var(--title-blue-light));
+  color: var(--win-white);
+  font-weight: 700;
+  font-size: 11px;
+  padding: 2px 3px;
+  display: flex;
   align-items: center;
-  padding: 20px;
-  background: #ffffff;
-  border: 1px solid #e2e8f0;
-  border-radius: 10px;
+  justify-content: space-between;
+  flex-shrink: 0;
+}
+
+.title-bar-text {
+  display: flex;
+  align-items: center;
+  gap: 3px;
+  padding-left: 1px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.title-icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 14px;
+  height: 14px;
+  background: #c0a000;
+  color: var(--win-white);
+  font-weight: 700;
+  font-size: 9px;
+  border-radius: 1px;
+  flex-shrink: 0;
+}
+
+.title-bar-controls {
+  display: flex;
+  gap: 1px;
+  flex-shrink: 0;
+}
+
+.title-btn {
+  width: 14px;
+  height: 12px;
+  font-family: var(--font);
+  font-size: 8px;
+  font-weight: 700;
+  background: var(--win-bg);
+  border: none;
+  box-shadow: var(--raised);
   cursor: pointer;
-  transition: box-shadow 0.2s, border-color 0.2s;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0;
+  color: var(--win-black);
+  line-height: 1;
+}
+
+.title-btn:active {
+  box-shadow: var(--sunken);
+}
+
+/* Menu Bar */
+.menu-bar {
+  display: flex;
+  padding: 1px 3px;
+  background: var(--win-bg);
+  border-bottom: 1px solid var(--win-dark);
+  flex-shrink: 0;
+}
+
+.menu-item {
+  padding: 1px 6px;
+  cursor: pointer;
+  font-size: 11px;
+}
+
+.menu-item:hover {
+  background: var(--highlight);
+  color: var(--highlight-text);
+}
+
+.menu-item u { text-decoration: underline; }
+
+/* Window Body */
+.window-body {
+  flex: 1;
+  overflow: auto;
+  padding: 6px;
+  min-height: 0;
+}
+
+/* ==========================
+   PANELS
+   ========================== */
+.panel {
+  display: flex;
+  flex-direction: column;
+}
+
+.panel-header {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 12px;
+  font-weight: 700;
+  padding: 2px 0 6px;
+  color: var(--title-blue);
+}
+
+.panel-icon { font-size: 13px; }
+
+/* ==========================
+   ACCOUNTS — card-style list
+   ========================== */
+.account-card {
+  box-shadow: var(--sunken);
+  padding: 6px 8px;
+  margin-bottom: 4px;
+  cursor: pointer;
+  background: var(--field-bg);
 }
 
 .account-card:hover {
-  border-color: #93c5fd;
-  box-shadow: 0 2px 8px rgba(30, 64, 175, 0.08);
+  background: var(--highlight);
+  color: var(--highlight-text);
 }
 
-.account-info {
-  display: flex;
-  flex-direction: column;
-  gap: 4px;
-}
+.account-card:hover .negative { color: var(--highlight-text); }
 
-.account-name {
-  font-weight: 600;
-  font-size: 1.05rem;
-}
-
-.account-type {
-  font-size: 0.8rem;
-  color: #94a3b8;
-  text-transform: uppercase;
-  letter-spacing: 0.05em;
-}
-
-.account-balance {
-  font-weight: 700;
-  font-size: 1.2rem;
-  color: #16a34a;
-}
-
-.account-balance.negative {
-  color: #dc2626;
-}
-
-/* Transactions */
-.transactions-view {
-  display: flex;
-  flex-direction: column;
-  gap: 16px;
-}
-
-.back-btn {
-  align-self: flex-start;
-  padding: 6px 14px;
-  font-size: 0.85rem;
-  font-weight: 500;
-  border: 1px solid #cbd5e1;
-  background: #f8fafc;
-  border-radius: 6px;
-  cursor: pointer;
-  color: #475569;
-  transition: background 0.2s;
-}
-
-.back-btn:hover {
-  background: #e2e8f0;
-}
-
-.transactions-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: baseline;
-}
-
-.transactions-header h2 {
-  margin: 0;
-  font-size: 1.3rem;
-}
-
-.transactions-list {
-  display: flex;
-  flex-direction: column;
-  border: 1px solid #e2e8f0;
-  border-radius: 10px;
-  overflow: hidden;
-}
-
-.transaction-row {
+.account-card-top {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  padding: 14px 20px;
-  border-bottom: 1px solid #f1f5f9;
+  gap: 4px;
 }
 
-.transaction-row:last-child {
-  border-bottom: none;
-}
-
-.transaction-left {
-  display: flex;
-  flex-direction: column;
-  gap: 2px;
-}
-
-.transaction-desc {
-  font-weight: 500;
-}
-
-.transaction-meta {
-  font-size: 0.8rem;
-  color: #94a3b8;
-}
-
-.transaction-amount {
-  font-weight: 600;
-  font-size: 1rem;
+.account-card-name {
+  font-weight: 700;
+  font-size: 11px;
   white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
-.transaction-amount.positive {
-  color: #16a34a;
+.account-card-type {
+  font-size: 9px;
+  text-transform: uppercase;
+  color: var(--win-dark);
+  flex-shrink: 0;
 }
 
-.transaction-amount.negative {
-  color: #1a1a2e;
+.account-card:hover .account-card-type { color: var(--highlight-text); }
+
+.account-card-balance {
+  font-family: 'Courier New', monospace;
+  font-size: 12px;
+  font-weight: 700;
+  text-align: right;
+  margin-top: 2px;
 }
 
-/* Transfer */
-.transfer-view {
-  max-width: 480px;
+.row-icon {
+  font-size: 10px;
+  margin-right: 2px;
 }
 
-.transfer-view h2 {
-  margin: 0 0 20px;
-  font-size: 1.3rem;
+.row-even { background: var(--field-bg); }
+.row-odd  { background: #f0f0f0; }
+
+.negative { color: #cc0000; }
+.positive { color: #006600; }
+
+.hint-text {
+  font-size: 10px;
+  color: var(--win-dark);
+  padding: 4px 0 0;
+  font-style: italic;
 }
 
+/* ==========================
+   TRANSACTIONS — compact rows
+   ========================== */
+.txn-balance-row {
+  font-size: 11px;
+  font-weight: 700;
+  padding: 2px 4px 4px;
+  font-family: 'Courier New', monospace;
+}
+
+.back-btn {
+  margin-bottom: 4px;
+  font-size: 10px !important;
+  padding: 2px 8px !important;
+  min-width: 50px !important;
+}
+
+.txn-list {
+  box-shadow: var(--sunken);
+  background: var(--field-bg);
+  overflow: auto;
+  flex: 1;
+  min-height: 0;
+}
+
+.txn-row {
+  padding: 4px 6px;
+  border-bottom: 1px solid #e0e0e0;
+  font-size: 11px;
+}
+
+.txn-row-top {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  gap: 4px;
+}
+
+.txn-desc {
+  font-weight: 500;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.txn-amount {
+  font-family: 'Courier New', monospace;
+  font-weight: 700;
+  font-size: 11px;
+  flex-shrink: 0;
+}
+
+.txn-row-bottom {
+  display: flex;
+  justify-content: space-between;
+  font-size: 9px;
+  color: var(--win-dark);
+  margin-top: 1px;
+}
+
+.txn-date { font-family: 'Courier New', monospace; }
+.txn-cat  { text-transform: uppercase; }
+
+/* ==========================
+   FORMS — stacked for mobile
+   ========================== */
 .transfer-form {
   display: flex;
   flex-direction: column;
-  gap: 16px;
+}
+
+.win95-fieldset {
+  border: 1px solid var(--win-dark);
+  border-top-color: var(--win-white);
+  border-left-color: var(--win-white);
+  padding: 8px 10px;
+  margin: 0 0 8px 0;
+}
+
+.win95-fieldset legend {
+  font-size: 11px;
+  padding: 0 3px;
 }
 
 .form-group {
   display: flex;
   flex-direction: column;
-  gap: 6px;
-  text-align: left;
+  gap: 2px;
+  margin-bottom: 6px;
 }
 
 .form-group label {
-  font-size: 0.85rem;
-  font-weight: 600;
-  color: #475569;
+  font-size: 10px;
+  font-weight: 700;
+  color: var(--win-darker);
 }
 
 .form-group input,
 .form-group select {
-  padding: 10px 12px;
-  font-size: 0.95rem;
-  border: 1px solid #cbd5e1;
-  border-radius: 8px;
-  background: #ffffff;
-  color: #0f172a;
-  transition: border-color 0.2s;
-}
-
-.form-group input:focus,
-.form-group select:focus {
-  outline: none;
-  border-color: #3b82f6;
-  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.15);
-}
-
-.submit-btn {
-  padding: 12px;
-  font-size: 1rem;
-  font-weight: 600;
+  width: 100%;
+  font-family: var(--font);
+  font-size: 11px;
+  padding: 3px 4px;
+  background: var(--field-bg);
   border: none;
-  border-radius: 8px;
+  box-shadow: var(--sunken);
+  color: var(--win-black);
+  outline: none;
+}
+
+.form-group select { appearance: auto; }
+
+.form-group input::placeholder { color: var(--win-dark); }
+
+.form-actions {
+  display: flex;
+  gap: 6px;
+  justify-content: flex-end;
+  padding-top: 2px;
+}
+
+/* ==========================
+   SUPPORT VIEW
+   ========================== */
+.support-view { padding: 2px; }
+
+.support-text {
+  margin: 2px 0 6px;
+  font-size: 11px;
+  line-height: 1.4;
+}
+
+.support-info {
+  font-size: 11px;
+  margin: 6px 0 2px;
+  padding: 4px 6px;
+  background: var(--field-bg);
+  box-shadow: var(--sunken);
+  font-family: 'Courier New', monospace;
+}
+
+.support-info span { font-weight: 700; }
+
+/* ==========================
+   WIN95 BUTTONS
+   ========================== */
+.win95-btn {
+  font-family: var(--font);
+  font-size: 11px;
+  padding: 3px 12px;
+  background: var(--win-bg);
+  border: none;
+  box-shadow: var(--raised);
   cursor: pointer;
-  background: #1e40af;
-  color: white;
-  transition: background 0.2s;
-  margin-top: 4px;
+  color: var(--win-black);
+  min-width: 60px;
 }
 
-.submit-btn:hover {
-  background: #1e3a8a;
-}
+.win95-btn:active { box-shadow: var(--sunken); }
 
-.submit-btn:disabled {
-  opacity: 0.6;
+.win95-btn:disabled {
+  color: var(--win-dark);
+  text-shadow: 1px 1px 0 var(--win-white);
   cursor: not-allowed;
 }
 
-/* Result */
-.result {
-  margin-top: 20px;
-  padding: 16px;
-  border-radius: 8px;
-  text-align: left;
+.win95-btn.primary {
+  font-weight: 700;
+  box-shadow: var(--raised), 0 0 0 1px var(--win-black);
 }
 
-.result-success {
-  background: #f0fdf4;
-  border: 1px solid #bbf7d0;
+.win95-btn.primary:active {
+  box-shadow: var(--sunken), 0 0 0 1px var(--win-black);
 }
 
-.result-error {
-  background: #fef2f2;
-  border: 1px solid #fecaca;
+/* ==========================
+   RESULT DIALOG (inline)
+   ========================== */
+.result-dialog {
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+  margin-top: 8px;
+  padding: 8px;
+  background: var(--win-bg);
+  box-shadow: var(--sunken);
 }
+
+.result-dialog-icon {
+  font-size: 22px;
+  flex-shrink: 0;
+  line-height: 1;
+}
+
+.result-success .result-dialog-icon { color: #006600; }
+.result-error   .result-dialog-icon { color: #cc0000; }
+
+.result-dialog-body { flex: 1; }
 
 .result-status {
   font-weight: 700;
-  margin-bottom: 4px;
-  font-size: 0.9rem;
+  font-size: 11px;
+  margin-bottom: 2px;
 }
 
-.result-success .result-status {
-  color: #16a34a;
-}
+.result-success .result-status { color: #006600; }
+.result-error   .result-status { color: #cc0000; }
 
-.result-error .result-status {
-  color: #dc2626;
-}
-
-.result p {
+.result-dialog p {
   margin: 0;
-  font-size: 0.9rem;
-  color: #475569;
+  font-size: 10px;
+  word-break: break-word;
+}
+
+/* ==========================
+   LOADING
+   ========================== */
+.loading-area {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 32px 12px;
+  text-align: center;
+}
+
+.hourglass {
+  font-size: 28px;
+  animation: hourglass-flip 1.2s step-end infinite;
+  margin-bottom: 8px;
+}
+
+@keyframes hourglass-flip {
+  0%, 100% { transform: rotate(0deg); }
+  50% { transform: rotate(180deg); }
+}
+
+.loading-area p {
+  font-size: 11px;
+  margin: 0 0 8px;
+}
+
+.progress-bar-track {
+  width: 160px;
+  height: 14px;
+  box-shadow: var(--sunken);
+  background: var(--win-bg);
+  padding: 2px;
+}
+
+.progress-bar-fill {
+  height: 100%;
+  background: repeating-linear-gradient(
+    90deg,
+    var(--title-blue) 0px,
+    var(--title-blue) 8px,
+    transparent 8px,
+    transparent 10px
+  );
+  animation: progress-anim 2s linear infinite;
+  width: 60%;
+}
+
+@keyframes progress-anim {
+  0%   { width: 10%; }
+  50%  { width: 70%; }
+  100% { width: 100%; }
+}
+
+/* ==========================
+   BOTTOM NAV (mobile toolbar)
+   ========================== */
+.bottom-nav {
+  display: flex;
+  background: var(--win-bg);
+  border-top: 1px solid var(--win-white);
+  box-shadow: inset 0 1px 0 var(--win-light);
+  flex-shrink: 0;
+}
+
+.bottom-nav-btn {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 1px;
+  padding: 4px 2px 3px;
+  font-family: var(--font);
+  font-size: 9px;
+  background: var(--win-bg);
+  border: none;
+  box-shadow: var(--raised);
+  cursor: pointer;
+  color: var(--win-black);
+  margin: 1px;
+}
+
+.bottom-nav-btn:hover {
+  box-shadow: inset 1px 1px 0 var(--win-white), inset -1px -1px 0 var(--win-dark);
+}
+
+.bottom-nav-btn:active,
+.nav-active {
+  box-shadow: var(--sunken) !important;
+  background: #b0b0b0;
+}
+
+.nav-icon {
+  font-size: 14px;
+  line-height: 1;
+}
+
+.nav-label {
+  font-size: 9px;
+  line-height: 1;
+}
+
+/* ==========================
+   TASKBAR (compact)
+   ========================== */
+.taskbar {
+  height: 22px;
+  background: var(--win-bg);
+  box-shadow: inset 0 1px 0 var(--win-white);
+  display: flex;
+  align-items: center;
+  padding: 1px 3px;
+  gap: 3px;
+  flex-shrink: 0;
+}
+
+.start-btn {
+  display: flex;
+  align-items: center;
+  gap: 2px;
+  padding: 1px 6px;
+  font-family: var(--font);
+  font-size: 10px;
+  font-weight: 700;
+  background: var(--win-bg);
+  border: none;
+  box-shadow: var(--raised);
+  cursor: pointer;
+  height: 18px;
+  color: var(--win-black);
+}
+
+.start-btn:active { box-shadow: var(--sunken); }
+
+.start-flag {
+  font-size: 10px;
+  color: #ff0000;
+  line-height: 1;
+}
+
+.taskbar-spacer { flex: 1; }
+
+.system-tray {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  box-shadow: inset 1px 1px 0 var(--win-dark), inset -1px -1px 0 var(--win-white);
+  padding: 1px 6px;
+  height: 18px;
+  font-size: 9px;
+}
+
+.status-text {
+  color: var(--win-darker);
+  font-size: 9px;
+}
+
+.tray-clock {
+  font-family: 'Courier New', monospace;
+  font-size: 9px;
+}
+
+/* ==========================
+   START MENU
+   ========================== */
+.start-menu {
+  position: absolute;
+  bottom: 22px;
+  left: 0;
+  background: var(--win-bg);
+  box-shadow: var(--raised);
+  display: flex;
+  z-index: 200;
+  min-width: 150px;
+}
+
+.start-menu-sidebar {
+  width: 20px;
+  background: linear-gradient(180deg, var(--title-blue), var(--title-blue-light));
+  color: var(--win-white);
+  font-size: 9px;
+  font-weight: 700;
+  writing-mode: vertical-rl;
+  text-orientation: mixed;
+  transform: rotate(180deg);
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  padding: 6px 2px;
+  letter-spacing: 1px;
+}
+
+.start-menu-items {
+  padding: 3px 0;
+  flex: 1;
+}
+
+.start-menu-item {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 4px 16px 4px 6px;
+  cursor: pointer;
+  font-size: 11px;
+}
+
+.start-menu-item:hover {
+  background: var(--highlight);
+  color: var(--highlight-text);
+}
+
+.smi-icon {
+  font-size: 13px;
+  width: 16px;
+  text-align: center;
+}
+
+.start-menu-divider {
+  height: 1px;
+  background: var(--win-dark);
+  border-bottom: 1px solid var(--win-white);
+  margin: 2px 4px;
+}
+
+/* ==========================
+   ABOUT DIALOG
+   ========================== */
+.dialog-overlay {
+  position: absolute;
+  inset: 0;
+  background: rgba(0,0,0,0.2);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 300;
+}
+
+.win95-dialog {
+  background: var(--win-bg);
+  box-shadow: var(--raised);
+  width: 80%;
+  max-width: 260px;
+}
+
+.dialog-title-bar {
+  background: linear-gradient(90deg, var(--title-blue), var(--title-blue-light));
+}
+
+.dialog-body {
+  padding: 12px 16px;
+  text-align: center;
+}
+
+.about-logo {
+  font-size: 24px;
+  color: #c0a000;
+  font-weight: 700;
+  letter-spacing: 3px;
+  margin-bottom: 6px;
+}
+
+.dialog-body p {
+  margin: 2px 0;
+  font-size: 11px;
+}
+
+.about-copy {
+  color: var(--win-dark);
+  font-size: 10px !important;
+}
+
+.about-mem {
+  color: var(--win-dark);
+  font-size: 10px !important;
+  margin-top: 8px !important;
+  padding-top: 6px;
+  border-top: 1px solid var(--win-dark);
+}
+
+.dialog-body .win95-btn {
+  margin-top: 10px;
+}
+
+/* ==========================
+   SCROLLBARS (retro)
+   ========================== */
+.window-body::-webkit-scrollbar,
+.txn-list::-webkit-scrollbar {
+  width: 12px;
+}
+
+.window-body::-webkit-scrollbar-track,
+.txn-list::-webkit-scrollbar-track {
+  background: repeating-conic-gradient(var(--win-bg) 0% 25%, var(--win-light) 0% 50%) 50% / 2px 2px;
+}
+
+.window-body::-webkit-scrollbar-thumb,
+.txn-list::-webkit-scrollbar-thumb {
+  background: var(--win-bg);
+  box-shadow: var(--raised);
 }

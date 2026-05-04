@@ -27,7 +27,7 @@ if [ -n "$MISSING" ]; then
   exit 1
 fi
 
-echo "=== Reacting to AI - Cluster & Observability Setup ==="
+echo "=== HomeBanking App - Cluster & Observability Setup ==="
 echo ""
 
 # -------------------------------------------------------
@@ -251,7 +251,7 @@ echo ""
 # -------------------------------------------------------
 echo "--- Configuring Argo CD Application ---"
 kubectl apply -f "$PROJECT_ROOT/k8s-argocd/application.yaml"
-echo "Argo CD Application 'reacting-to-ai' created. It will sync from k8s/ in the main branch."
+echo "Argo CD Application 'homebanking-app' created. It will sync from k8s/ in the main branch."
 echo ""
 
 # -------------------------------------------------------

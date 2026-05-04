@@ -1,6 +1,12 @@
-# reacting-to-ai
+# Reacting To AI
 
-A Go application with a React frontend, an observability stack, and AI-powered agents for monitoring and fixing issues — all deployed to Kubernetes via GitOps.
+We are heading to fully automate the software development lifecycle. The question is how can we do that if we were always really bad at deliverying software at scale. Only large and mature organizations who have invested millions in software practices managed to achieve an efficient delivery pipeline. 
+
+If code is going away (cheap to produce, easy to throw away and regenerate), does it matter anymore? Can we skip all the phases that we introduced to make the software delivery pipeline secure and robust? Can we let agents push things to production? 
+
+Things are changing, so let's explore how this transition might look like, keeping in mind that historically, we know how good software is developed and deployed but we are quite bad at implementing those practices at scale. 
+
+Join me in a cloud native exploration of this new era. 
 
 ## Prerequisites
 

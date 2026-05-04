@@ -1,13 +1,13 @@
 apiVersion: v1
 kind: Service
 metadata:
-  name: reacting-to-ai
+  name: homebanking-app
   labels:
-    app: reacting-to-ai
+    app: homebanking-app
 spec:
   type: ClusterIP
   selector:
-    app: reacting-to-ai
+    app: homebanking-app
   ports:
     - port: 80
       targetPort: 8080

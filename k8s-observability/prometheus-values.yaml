@@ -42,7 +42,7 @@ kubeEtcd:
 additionalPrometheusRulesMap:
   error-rate-alerts:
     groups:
-      - name: reacting-to-ai
+      - name: homebanking-app
         interval: 30s
         rules:
           - alert: HighErrorRate

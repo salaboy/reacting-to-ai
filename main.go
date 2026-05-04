@@ -77,7 +77,7 @@ func initTracer() func() {
 
 	res, err := resource.New(ctx,
 		resource.WithAttributes(
-			semconv.ServiceName("reacting-to-ai"),
+			semconv.ServiceName("homebanking-app"),
 		),
 	)
 	if err != nil {
@@ -136,6 +136,17 @@ func main() {
 		json.NewEncoder(w).Encode(txs)
 	})
 
+	r.Post("/api/support", func(w http.ResponseWriter, r *http.Request) {
+		time.Sleep(300 * time.Millisecond)
+
+		w.Header().Set("Content-Type", "application/json")
+		w.WriteHeader(http.StatusInternalServerError)
+		json.NewEncoder(w).Encode(map[string]string{
+			"status":  "error",
+			"message": "Support service unavailable: representative directory service unreachable",
+		})
+	})
+
 	r.Post("/api/transfers", func(w http.ResponseWriter, r *http.Request) {
 		// Simulate processing delay
 		time.Sleep(500 * time.Millisecond)
@@ -157,7 +168,7 @@ func main() {
 	r.Handle("/*", fileServer)
 
 	// Wrap the router with OTel HTTP instrumentation
-	handler := otelhttp.NewHandler(r, "reacting-to-ai")
+	handler := otelhttp.NewHandler(r, "homebanking-app")
 
 	port := os.Getenv("PORT")
 	if port == "" {
