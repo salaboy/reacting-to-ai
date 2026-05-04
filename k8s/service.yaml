@@ -12,3 +12,18 @@ spec:
     - port: 80
       targetPort: 8080
       protocol: TCP
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: homebanking-app-preview
+  labels:
+    app: homebanking-app
+spec:
+  type: ClusterIP
+  selector:
+    app: homebanking-app
+  ports:
+    - port: 80
+      targetPort: 8080
+      protocol: TCP

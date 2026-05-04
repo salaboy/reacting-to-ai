@@ -19,6 +19,27 @@ spec:
 apiVersion: networking.k8s.io/v1
 kind: Ingress
 metadata:
+  name: homebanking-app-preview-ingress
+  annotations:
+    nginx.ingress.kubernetes.io/rewrite-target: /$2
+    nginx.ingress.kubernetes.io/use-regex: "true"
+spec:
+  ingressClassName: nginx
+  rules:
+    - http:
+        paths:
+          # Preview (blue/green): http://localhost/preview(/|$)(.*)
+          - path: /preview(/|$)(.*)
+            pathType: ImplementationSpecific
+            backend:
+              service:
+                name: homebanking-app-preview
+                port:
+                  number: 80
+---
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
   name: monitor-agent-ingress
   annotations:
     nginx.ingress.kubernetes.io/rewrite-target: /$2

@@ -1,11 +1,12 @@
-apiVersion: apps/v1
-kind: Deployment
+apiVersion: argoproj.io/v1alpha1
+kind: Rollout
 metadata:
   name: homebanking-app
   labels:
     app: homebanking-app
 spec:
   replicas: 1
+  revisionHistoryLimit: 2
   selector:
     matchLabels:
       app: homebanking-app
@@ -44,3 +45,9 @@ spec:
               cpu: 100m
             limits:
               memory: 128Mi
+  strategy:
+    blueGreen:
+      activeService: homebanking-app
+      previewService: homebanking-app-preview
+      autoPromotionEnabled: false
+      scaleDownDelaySeconds: 30
