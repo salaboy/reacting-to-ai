@@ -67,7 +67,8 @@ var transactions = map[string][]Transaction{
 }
 
 func initTracer() func() {
-	ctx := context.Background()
+	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+	defer cancel()
 
 	exporter, err := otlptracegrpc.New(ctx)
 	if err != nil {
