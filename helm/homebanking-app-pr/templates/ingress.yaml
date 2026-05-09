@@ -1,0 +1,22 @@
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: homebanking-app
+  labels:
+    app: homebanking-app
+    pr: "{{ .Values.prNumber }}"
+  annotations:
+    nginx.ingress.kubernetes.io/rewrite-target: /$2
+    nginx.ingress.kubernetes.io/use-regex: "true"
+spec:
+  ingressClassName: nginx
+  rules:
+    - http:
+        paths:
+          - path: /pr/{{ .Values.prNumber }}(/|$)(.*)
+            pathType: ImplementationSpecific
+            backend:
+              service:
+                name: homebanking-app
+                port:
+                  number: 80

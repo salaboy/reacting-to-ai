@@ -1,0 +1,4 @@
+prNumber: ""
+image:
+  repository: ghcr.io/salaboy/homebanking-app
+  tag: ""

@@ -1,0 +1,38 @@
+apiVersion: argoproj.io/v1alpha1
+kind: ApplicationSet
+metadata:
+  name: homebanking-app-pr-previews
+  namespace: argocd
+spec:
+  generators:
+    - pullRequest:
+        github:
+          owner: salaboy
+          repo: reacting-to-ai
+          tokenRef:
+            secretName: github-token
+            key: token
+        requeueAfterSeconds: 60
+  template:
+    metadata:
+      name: homebanking-app-pr-{{number}}
+    spec:
+      project: default
+      source:
+        repoURL: https://github.com/salaboy/reacting-to-ai.git
+        targetRevision: main
+        path: helm/homebanking-app-pr
+        helm:
+          valuesObject:
+            prNumber: "{{number}}"
+            image:
+              tag: "pr-{{number}}"
+      destination:
+        server: https://kubernetes.default.svc
+        namespace: pr-{{number}}
+      syncPolicy:
+        automated:
+          prune: true
+          selfHeal: true
+        syncOptions:
+          - CreateNamespace=true

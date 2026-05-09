@@ -221,6 +221,49 @@ kubectl get pods -n argo-rollouts
 echo ""
 
 # -------------------------------------------------------
+# 10b. Install Argo CD Image Updater
+# -------------------------------------------------------
+echo "--- Installing Argo CD Image Updater ---"
+
+GITHUB_USER="${GITHUB_ACTOR:-salaboy}"
+
+# Registry credential so Image Updater can read GHCR tag list / digests
+kubectl create secret docker-registry ghcr-creds \
+  --docker-server=ghcr.io \
+  --docker-username="$GITHUB_USER" \
+  --docker-password="$GITHUB_TOKEN" \
+  --namespace=argocd \
+  --dry-run=client -o yaml | kubectl apply -f -
+
+# Repo credential so Image Updater (and Argo CD) can write manifest updates back to git
+kubectl apply -f - <<EOF
+apiVersion: v1
+kind: Secret
+metadata:
+  name: reacting-to-ai-repo
+  namespace: argocd
+  labels:
+    argocd.argoproj.io/secret-type: repository
+stringData:
+  url: https://github.com/salaboy/reacting-to-ai.git
+  username: $GITHUB_USER
+  password: $GITHUB_TOKEN
+EOF
+
+if helm status argocd-image-updater -n argocd &>/dev/null; then
+  echo "Argo CD Image Updater is already installed, skipping."
+else
+  helm install argocd-image-updater argo/argocd-image-updater \
+    --namespace argocd \
+    --set config.gitCommitUser=argocd-image-updater \
+    --set config.gitCommitMail=argocd-image-updater@noreply.local \
+    --wait
+fi
+echo "Argo CD Image Updater pods:"
+kubectl get pods -n argocd -l app.kubernetes.io/name=argocd-image-updater
+echo ""
+
+# -------------------------------------------------------
 # 11. Deploy agents
 # -------------------------------------------------------
 echo "--- Deploying Monitor Agent ---"
@@ -255,6 +298,18 @@ echo "Argo CD Application 'homebanking-app' created. It will sync from k8s/ in t
 echo ""
 
 # -------------------------------------------------------
+# 12b. Configure ApplicationSet for per-PR previews
+# -------------------------------------------------------
+echo "--- Configuring per-PR preview ApplicationSet ---"
+kubectl create secret generic github-token \
+  --from-literal=token="$GITHUB_TOKEN" \
+  --namespace=argocd \
+  --dry-run=client -o yaml | kubectl apply -f -
+kubectl apply -f "$PROJECT_ROOT/k8s-argocd/applicationset-prs.yaml"
+echo "ApplicationSet 'homebanking-app-pr-previews' created. Open PRs will be reachable at http://localhost/pr/<n>/."
+echo ""
+
+# -------------------------------------------------------
 # 13. Apply Ingress resources
 # -------------------------------------------------------
 echo "--- Applying Ingress resources ---"
@@ -268,14 +323,16 @@ echo "Cluster: $CLUSTER_NAME"
 echo ""
 echo "All UIs are accessible via the ingress controller on http://localhost:"
 echo ""
-echo "  Application:    http://localhost/"
-echo "  Monitor Agent:  http://localhost/monitor/"
-echo "  Fixer Agent:    http://localhost/fixer/"
-echo "  Business Agent: http://localhost/business/"
-echo "  Jaeger:         http://localhost/jaeger/ui"
-echo "  Prometheus:     http://localhost/prometheus/"
-echo "  Alertmanager:   http://localhost/alertmanager/"
-echo "  Argo CD:        http://localhost/argocd/"
+echo "  Application (active):   http://localhost/"
+echo "  Application (preview):  http://localhost/preview      (next blue/green candidate)"
+echo "  Application (PR <n>):   http://localhost/pr/<n>/      (per-PR preview, while PR is open)"
+echo "  Monitor Agent:          http://localhost/monitor/"
+echo "  Fixer Agent:            http://localhost/fixer/"
+echo "  Business Agent:         http://localhost/business/"
+echo "  Jaeger:                 http://localhost/jaeger/ui"
+echo "  Prometheus:             http://localhost/prometheus/"
+echo "  Alertmanager:           http://localhost/alertmanager/"
+echo "  Argo CD:                http://localhost/argocd/"
 echo ""
 echo "Argo CD credentials:"
 echo "  Username: admin"

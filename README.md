@@ -74,10 +74,11 @@ The script performs these steps:
 7. Installs cert-manager
 8. Installs the OpenTelemetry Operator
 9. Applies the OpenTelemetry Instrumentation resource
-10. Installs Argo CD
-11. Deploys the monitor agent and fixer agent
-12. Configures the Argo CD Application to sync the main app from `k8s/`
-13. Applies Ingress resources for path-based routing
+10. Installs Argo CD and Argo Rollouts
+11. Installs Argo CD Image Updater (digest-pins `:main` so each new build triggers a blue/green rollout)
+12. Deploys the monitor agent, fixer agent, and business agent
+13. Configures the Argo CD Application (main app from `k8s/`) and the ApplicationSet for per-PR previews
+14. Applies Ingress resources for path-based routing
 
 ## Accessing the UIs
 
@@ -85,13 +86,45 @@ All UIs are accessible via the NGINX Ingress Controller on `http://localhost`:
 
 | Service | URL |
 |---|---|
-| Application | http://localhost/ |
+| Application (active) | http://localhost/ |
+| Application (preview) | http://localhost/preview |
+| Application (per-PR) | http://localhost/pr/&lt;number&gt;/ |
 | Monitor Agent | http://localhost/monitor/ |
 | Fixer Agent | http://localhost/fixer/ |
 | Jaeger | http://localhost/jaeger/ui |
 | Prometheus | http://localhost/prometheus/ |
 | Alertmanager | http://localhost/alertmanager/ |
 | Argo CD | http://localhost/argocd/ |
+
+## Preview environments
+
+Two parallel mechanisms let you exercise changes before they reach the active version:
+
+### Post-merge blue/green preview (`/preview`)
+
+The main app's Argo Rollout uses the blue/green strategy with `autoPromotionEnabled: false`. Argo CD Image Updater watches `ghcr.io/salaboy/homebanking-app:main` and rewrites `k8s/deployment.yaml` to pin the digest whenever a new image is built. That manifest change triggers the Rollout, which spins up a preview ReplicaSet behind `homebanking-app-preview` while keeping the active version in front of `/`.
+
+While a rollout is paused:
+
+```bash
+# Watch progress
+kubectl argo rollouts get rollout homebanking-app --watch
+
+# Hit the candidate version directly
+curl http://localhost/preview/api/health
+
+# Promote to active (and scale down the old ReplicaSet)
+kubectl argo rollouts promote homebanking-app
+
+# Or roll back
+kubectl argo rollouts abort homebanking-app
+```
+
+### Per-PR previews (`/pr/<n>/`)
+
+When a PR is opened against `main`, CI builds and pushes `ghcr.io/salaboy/homebanking-app:pr-<n>`. An `ApplicationSet` with the `pullRequest` generator (`k8s-argocd/applicationset-prs.yaml`) creates one Argo CD Application per open PR, deploying the small chart at `helm/homebanking-app-pr/` into a dedicated `pr-<n>` namespace. The PR is reachable at `http://localhost/pr/<n>/`. When the PR is closed or merged, the Application is pruned along with its namespace.
+
+Per-PR previews use a plain `Deployment` (no Rollout) since there is no prior version to roll over.
 
 Argo CD credentials:
 
@@ -107,10 +140,11 @@ kubectl -n argocd get secret argocd-initial-admin-secret -o jsonpath='{.data.pas
 .
 ├── main.go                          # Go application (Chi router + OTel instrumentation)
 ├── frontend/                        # React frontend for the main app
-├── k8s/                             # Kubernetes manifests (deployed via Argo CD)
-├── k8s-argocd/                      # Argo CD Application resource
+├── k8s/                             # Kubernetes manifests for the main app (deployed via Argo CD)
+├── k8s-argocd/                      # Argo CD Application + ApplicationSet (PR previews)
 ├── k8s-ingress/                     # Ingress resources for path-based routing
 ├── k8s-observability/               # Helm values for Jaeger, OTel Collector, Prometheus
+├── helm/homebanking-app-pr/         # Helm chart used by the per-PR ApplicationSet
 ├── agents/
 │   ├── monitor-agent/               # Receives Alertmanager webhooks, queries Jaeger for related traces
 │   └── fixer-agent/                 # AI agent that analyzes code and creates fix PRs

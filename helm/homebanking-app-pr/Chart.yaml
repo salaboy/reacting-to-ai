@@ -1,0 +1,6 @@
+apiVersion: v2
+name: homebanking-app-pr
+description: Per-PR preview deployment of the homebanking-app
+type: application
+version: 0.1.0
+appVersion: "0.1.0"
