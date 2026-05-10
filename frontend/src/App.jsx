@@ -100,7 +100,7 @@ function App() {
   const fetchAccounts = async () => {
     setLoading(true)
     try {
-      const res = await fetch('/api/accounts')
+      const res = await fetch('api/accounts')
       const data = await res.json()
       setAccounts(data)
     } catch (err) {
@@ -115,7 +115,7 @@ function App() {
     setSelectedAccount(account)
     setView('transactions')
     try {
-      const res = await fetch(`/api/accounts/${account.id}/transactions`)
+      const res = await fetch(`api/accounts/${account.id}/transactions`)
       const data = await res.json()
       setTransactions(data)
     } catch (err) {
@@ -130,7 +130,7 @@ function App() {
     setTransferLoading(true)
     setTransferResult(null)
     try {
-      const res = await fetch('/api/transfers', {
+      const res = await fetch('api/transfers', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -153,7 +153,7 @@ function App() {
     setSupportLoading(true)
     setSupportResult(null)
     try {
-      const res = await fetch('/api/support', {
+      const res = await fetch('api/support', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ reason: 'Customer requested representative contact' }),
