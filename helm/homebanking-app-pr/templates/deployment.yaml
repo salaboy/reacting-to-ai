@@ -15,10 +15,13 @@ spec:
       labels:
         app: homebanking-app
         pr: "{{ .Values.prNumber }}"
+      annotations:
+        prHeadSha: "{{ .Values.headSha }}"
     spec:
       containers:
         - name: homebanking-app
           image: "{{ .Values.image.repository }}:{{ .Values.image.tag }}"
+          imagePullPolicy: Always
           ports:
             - containerPort: 8080
           env:

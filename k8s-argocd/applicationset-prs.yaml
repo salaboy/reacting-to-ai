@@ -25,6 +25,7 @@ spec:
         helm:
           valuesObject:
             prNumber: "{{number}}"
+            headSha: "{{head_sha}}"
             image:
               tag: "pr-{{number}}"
       destination:
