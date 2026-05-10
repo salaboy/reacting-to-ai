@@ -6,6 +6,7 @@ const STATUS_LABELS = {
   browsing: 'Browsing',
   creating_issue: 'Creating Issue',
   issue_created: 'Issue Created',
+  evaluated: 'Evaluated',
   no_issues: 'No Issues Found',
   completed: 'Completed',
   error: 'Error',
@@ -16,6 +17,7 @@ const STATUS_COLORS = {
   browsing: 'status-active',
   creating_issue: 'status-active',
   issue_created: 'status-warning',
+  evaluated: 'status-success',
   no_issues: 'status-success',
   completed: 'status-neutral',
   error: 'status-error',
@@ -112,16 +114,16 @@ function StepItem({ step }) {
   return null
 }
 
-function ValidationDetail({ id, onBack }) {
-  const [val, setVal] = useState(null)
+function EvaluationDetail({ id, onBack }) {
+  const [evaluation, setEvaluation] = useState(null)
   const timelineEndRef = useRef(null)
 
   useEffect(() => {
     const fetchDetail = async () => {
       try {
-        const res = await fetch(`/business/api/validations/${id}`)
+        const res = await fetch(`/business/api/evaluations/${id}`)
         if (res.ok) {
-          setVal(await res.json())
+          setEvaluation(await res.json())
         }
       } catch {
         // ignore
@@ -134,51 +136,51 @@ function ValidationDetail({ id, onBack }) {
 
   useEffect(() => {
     timelineEndRef.current?.scrollIntoView({ behavior: 'smooth' })
-  }, [val?.steps?.length])
+  }, [evaluation?.steps?.length])
 
-  if (!val) return <div className="app"><p className="empty">Loading...</p></div>
+  if (!evaluation) return <div className="app"><p className="empty">Loading...</p></div>
 
-  const isActive = ACTIVE_STATUSES.includes(val.status)
+  const isActive = ACTIVE_STATUSES.includes(evaluation.status)
 
   return (
     <div className="app">
-      <button className="detail-back" onClick={onBack}>&larr; All validations</button>
+      <button className="detail-back" onClick={onBack}>&larr; All evaluations</button>
 
       <div className="detail-header">
-        <span className="detail-url">{val.url}</span>
-        <span className={`val-status ${STATUS_COLORS[val.status]}`}>
-          {STATUS_LABELS[val.status] || val.status}
+        <span className="detail-url">{evaluation.url}</span>
+        <span className={`eval-status ${STATUS_COLORS[evaluation.status]}`}>
+          {STATUS_LABELS[evaluation.status] || evaluation.status}
         </span>
       </div>
 
-      {val.description && <p className="val-description">{val.description}</p>}
+      {evaluation.description && <p className="eval-description">{evaluation.description}</p>}
 
       <div className="detail-meta">
-        <p>Started: {new Date(val.createdAt).toLocaleString()}</p>
-        {val.completedAt && <p>Completed: {new Date(val.completedAt).toLocaleString()}</p>}
-        <p>ID: {val.id}</p>
+        <p>Started: {new Date(evaluation.createdAt).toLocaleString()}</p>
+        {evaluation.completedAt && <p>Completed: {new Date(evaluation.completedAt).toLocaleString()}</p>}
+        <p>ID: {evaluation.id}</p>
       </div>
 
-      {val.issue_url && (
-        <a href={val.issue_url} target="_blank" rel="noopener noreferrer" className="val-issue-link">
+      {evaluation.issue_url && (
+        <a href={evaluation.issue_url} target="_blank" rel="noopener noreferrer" className="eval-issue-link">
           View GitHub Issue
         </a>
       )}
 
-      {val.error && (
+      {evaluation.error && (
         <div className="detail-error">
           <h3>Error</h3>
-          <pre>{val.error}</pre>
+          <pre>{evaluation.error}</pre>
         </div>
       )}
 
       <div className="timeline-section">
         <h2 className="timeline-title">Agent Activity</h2>
-        {(!val.steps || val.steps.length === 0) && (
+        {(!evaluation.steps || evaluation.steps.length === 0) && (
           <p className="empty">Waiting for agent to start...</p>
         )}
         <div className="timeline">
-          {val.steps?.map((step, i) => (
+          {evaluation.steps?.map((step, i) => (
             <StepItem key={i} step={step} />
           ))}
           {isActive && (
@@ -196,7 +198,7 @@ function ValidationDetail({ id, onBack }) {
   )
 }
 
-function NewValidationForm({ onSubmit }) {
+function NewEvaluationForm({ onSubmit }) {
   const [url, setUrl] = useState('')
   const [description, setDescription] = useState('')
   const [submitting, setSubmitting] = useState(false)
@@ -206,7 +208,7 @@ function NewValidationForm({ onSubmit }) {
     if (!url.trim()) return
     setSubmitting(true)
     try {
-      const res = await fetch('/business/validate', {
+      const res = await fetch('/business/evaluate', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ url: url.trim(), description: description.trim() }),
@@ -224,7 +226,7 @@ function NewValidationForm({ onSubmit }) {
   }
 
   return (
-    <form className="new-validation-form" onSubmit={handleSubmit}>
+    <form className="new-evaluation-form" onSubmit={handleSubmit}>
       <input
         type="url"
         placeholder="https://example.com"
@@ -241,70 +243,70 @@ function NewValidationForm({ onSubmit }) {
         className="form-input"
       />
       <button type="submit" disabled={submitting || !url.trim()} className="form-submit">
-        {submitting ? 'Submitting...' : 'Validate'}
+        {submitting ? 'Submitting...' : 'Evaluate'}
       </button>
     </form>
   )
 }
 
 function App() {
-  const [validations, setValidations] = useState([])
+  const [evaluations, setEvaluations] = useState([])
   const [selectedId, setSelectedId] = useState(null)
 
-  const fetchValidations = async () => {
+  const fetchEvaluations = async () => {
     try {
-      const res = await fetch('/business/api/validations')
+      const res = await fetch('/business/api/evaluations')
       const data = await res.json()
-      setValidations(data || [])
+      setEvaluations(data || [])
     } catch {
       // ignore
     }
   }
 
   useEffect(() => {
-    fetchValidations()
-    const interval = setInterval(fetchValidations, 3000)
+    fetchEvaluations()
+    const interval = setInterval(fetchEvaluations, 3000)
     return () => clearInterval(interval)
   }, [])
 
   if (selectedId) {
-    return <ValidationDetail id={selectedId} onBack={() => setSelectedId(null)} />
+    return <EvaluationDetail id={selectedId} onBack={() => setSelectedId(null)} />
   }
 
-  const active = validations.filter(v => ACTIVE_STATUSES.includes(v.status))
-  const completed = validations.filter(v => !ACTIVE_STATUSES.includes(v.status))
+  const active = evaluations.filter(e => ACTIVE_STATUSES.includes(e.status))
+  const completed = evaluations.filter(e => !ACTIVE_STATUSES.includes(e.status))
 
   return (
     <div className="app">
       <h1>Business Agent</h1>
       <p className="subtitle">
-        AI-powered website validation
-        <span className="badge">{validations.length}</span>
+        AI-powered website evaluation
+        <span className="badge">{evaluations.length}</span>
       </p>
 
-      <NewValidationForm onSubmit={fetchValidations} />
+      <NewEvaluationForm onSubmit={fetchEvaluations} />
 
-      {validations.length === 0 && (
-        <p className="empty">No validations yet. Submit a URL above to get started.</p>
+      {evaluations.length === 0 && (
+        <p className="empty">No evaluations yet. Submit a URL above to get started.</p>
       )}
 
       {active.length > 0 && (
-        <div className="val-group">
+        <div className="eval-group">
           <h2 className="group-title active-title">Active ({active.length})</h2>
-          {active.map((val) => (
-            <div key={val.id} className="val-card val-active">
-              <div className="val-header">
-                <span className="val-url-label">{val.url}</span>
-                <span className={`val-status ${STATUS_COLORS[val.status]}`}>
-                  {STATUS_LABELS[val.status] || val.status}
+          {active.map((evaluation) => (
+            <div key={evaluation.id} className="eval-card eval-active">
+              <div className="eval-header">
+                <span className="eval-url-label">{evaluation.url}</span>
+                <span className={`eval-status ${STATUS_COLORS[evaluation.status]}`}>
+                  {STATUS_LABELS[evaluation.status] || evaluation.status}
                 </span>
               </div>
-              {val.description && <p className="val-description">{val.description}</p>}
-              <div className="val-meta">
-                <span>Started: {new Date(val.createdAt).toLocaleString()}</span>
-                <span>ID: {val.id}</span>
+              {evaluation.description && <p className="eval-description">{evaluation.description}</p>}
+              <div className="eval-meta">
+                <span>Started: {new Date(evaluation.createdAt).toLocaleString()}</span>
+                <span>ID: {evaluation.id}</span>
               </div>
-              <button className="val-details-btn" onClick={() => setSelectedId(val.id)}>
+              <button className="eval-details-btn" onClick={() => setSelectedId(evaluation.id)}>
                 Details
               </button>
             </div>
@@ -313,41 +315,41 @@ function App() {
       )}
 
       {completed.length > 0 && (
-        <div className="val-group">
+        <div className="eval-group">
           <h2 className="group-title completed-title">Completed ({completed.length})</h2>
-          {completed.map((val) => (
+          {completed.map((evaluation) => (
             <div
-              key={val.id}
-              className={`val-card ${
-                val.status === 'error' ? 'val-error'
-                : val.status === 'issue_created' ? 'val-issue'
-                : 'val-completed'
+              key={evaluation.id}
+              className={`eval-card ${
+                evaluation.status === 'error' ? 'eval-error'
+                : evaluation.status === 'issue_created' ? 'eval-issue'
+                : 'eval-completed'
               }`}
             >
-              <div className="val-header">
-                <span className="val-url-label">{val.url}</span>
-                <span className={`val-status ${STATUS_COLORS[val.status]}`}>
-                  {STATUS_LABELS[val.status] || val.status}
+              <div className="eval-header">
+                <span className="eval-url-label">{evaluation.url}</span>
+                <span className={`eval-status ${STATUS_COLORS[evaluation.status]}`}>
+                  {STATUS_LABELS[evaluation.status] || evaluation.status}
                 </span>
               </div>
-              {val.description && <p className="val-description">{val.description}</p>}
-              {val.issue_url && (
+              {evaluation.description && <p className="eval-description">{evaluation.description}</p>}
+              {evaluation.issue_url && (
                 <a
-                  href={val.issue_url}
+                  href={evaluation.issue_url}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="val-issue-link"
+                  className="eval-issue-link"
                 >
                   View GitHub Issue
                 </a>
               )}
-              <div className="val-meta">
-                <span>Started: {new Date(val.createdAt).toLocaleString()}</span>
-                {val.completedAt && (
-                  <span>Completed: {new Date(val.completedAt).toLocaleString()}</span>
+              <div className="eval-meta">
+                <span>Started: {new Date(evaluation.createdAt).toLocaleString()}</span>
+                {evaluation.completedAt && (
+                  <span>Completed: {new Date(evaluation.completedAt).toLocaleString()}</span>
                 )}
               </div>
-              <button className="val-details-btn" onClick={() => setSelectedId(val.id)}>
+              <button className="eval-details-btn" onClick={() => setSelectedId(evaluation.id)}>
                 Details
               </button>
             </div>

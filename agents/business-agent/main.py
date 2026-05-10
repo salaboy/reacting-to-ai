@@ -27,7 +27,7 @@ GITHUB_TOKEN = os.getenv("GITHUB_TOKEN", "")
 ANTHROPIC_MODEL = os.getenv("ANTHROPIC_MODEL", "claude-sonnet-4-5-20250929")
 
 SYSTEM_PROMPT = (
-    "You are a business validation agent. You interact with web applications "
+    "You are a business evaluation agent. You interact with web applications "
     "to verify that user-facing features work correctly, as a real user would.\n\n"
     "Your goal is to navigate a website, perform actions, and ensure everything "
     "works without errors. You act like an end user testing the application.\n\n"
@@ -54,14 +54,20 @@ SYSTEM_PROMPT = (
 )
 
 
-class ValidateRequest(BaseModel):
+class EvaluateRequest(BaseModel):
     url: str
     description: str = ""
 
 
-validations_lock = Lock()
-validations: list[dict] = []
-MAX_VALIDATIONS = 50
+class EvaluationVerdict(BaseModel):
+    """Structured verdict produced by the classifier LLM after a evaluation run."""
+    passed: bool
+    summary: str
+
+
+evaluations_lock = Lock()
+evaluations: list[dict] = []
+MAX_EVALUATIONS = 50
 
 
 def create_tools(browser_state: dict):
@@ -294,6 +300,30 @@ def create_agent(tools):
     return create_react_agent(llm, tools, prompt=SYSTEM_PROMPT)
 
 
+async def classify_verdict(url: str, description: str, analysis: str) -> EvaluationVerdict:
+    """Ask the LLM to classify the evaluation report as passed/failed.
+
+    Why: keyword scans like "error" produce false positives ("no errors found"),
+    causing GitHub issues to be opened for clean evaluations.
+    """
+    llm = ChatAnthropic(model=ANTHROPIC_MODEL).with_structured_output(EvaluationVerdict)
+    prompt = (
+        "You are reviewing a business evaluation report produced by a browser agent.\n"
+        "Decide whether the evaluation PASSED or FAILED.\n\n"
+        "PASSED means: no HTTP errors, no JavaScript console errors, no visible error "
+        "messages, and the expected behavior occurred. Mentions like 'no errors found' "
+        "or 'no issues detected' indicate PASSED.\n"
+        "FAILED means: at least one real error, broken element, unexpected behavior, "
+        "or missing functionality was actually observed during the run.\n\n"
+        f"URL: {url}\n"
+        f"Description: {description or '(full exploration)'}\n\n"
+        f"Report:\n{analysis}\n\n"
+        "Return passed=true if the run was clean, passed=false if real problems were "
+        "observed. The summary should be one short sentence."
+    )
+    return await llm.ainvoke(prompt)
+
+
 def create_github_issue(title: str, body: str) -> str:
     parts = REPO_URL.rstrip("/").removesuffix(".git").split("/")
     owner, repo = parts[-2], parts[-1]
@@ -314,10 +344,10 @@ def create_github_issue(title: str, body: str) -> str:
     return resp.json().get("html_url", "")
 
 
-def add_step(validation_id: str, step_type: str, data: dict):
-    with validations_lock:
-        for v in validations:
-            if v["id"] == validation_id:
+def add_step(evaluation_id: str, step_type: str, data: dict):
+    with evaluations_lock:
+        for v in evaluations:
+            if v["id"] == evaluation_id:
                 v["steps"].append({
                     "type": step_type,
                     "timestamp": datetime.now(timezone.utc).isoformat(),
@@ -326,10 +356,10 @@ def add_step(validation_id: str, step_type: str, data: dict):
                 break
 
 
-def update_validation(validation_id: str, updates: dict):
-    with validations_lock:
-        for v in validations:
-            if v["id"] == validation_id:
+def update_evaluation(evaluation_id: str, updates: dict):
+    with evaluations_lock:
+        for v in evaluations:
+            if v["id"] == evaluation_id:
                 if "status" in updates and updates["status"] != v.get("status"):
                     v["steps"].append({
                         "type": "status_change",
@@ -340,8 +370,8 @@ def update_validation(validation_id: str, updates: dict):
                 break
 
 
-async def run_validation(validation_id: str, payload: ValidateRequest):
-    update_validation(validation_id, {"status": "browsing"})
+async def run_evaluation(evaluation_id: str, payload: EvaluateRequest):
+    update_evaluation(evaluation_id, {"status": "browsing"})
 
     pw = await async_playwright().start()
     browser = await pw.chromium.launch(headless=True)
@@ -374,7 +404,7 @@ async def run_validation(validation_id: str, payload: ValidateRequest):
             )
 
         user_prompt = (
-            f"Validate the website at: {payload.url}"
+            f"Evaluate the website at: {payload.url}"
             f"{description_context}\n\n"
             f"Navigate to the URL, interact with the page, and report any issues found. "
             f"Remember: you expect ZERO errors from any interaction."
@@ -390,20 +420,20 @@ async def run_validation(validation_id: str, payload: ValidateRequest):
                     if isinstance(msg, AIMessage):
                         if msg.tool_calls:
                             for tc in msg.tool_calls:
-                                add_step(validation_id, "tool_call", {
+                                add_step(evaluation_id, "tool_call", {
                                     "tool": tc["name"],
                                     "input": tc["args"],
                                 })
                         elif msg.content:
                             content = msg.content if isinstance(msg.content, str) else str(msg.content)
-                            add_step(validation_id, "agent_response", {
+                            add_step(evaluation_id, "agent_response", {
                                 "content": content,
                             })
                     elif isinstance(msg, ToolMessage):
                         content = msg.content if isinstance(msg.content, str) else str(msg.content)
                         if len(content) > 5000:
                             content = content[:5000] + "\n... (truncated)"
-                        add_step(validation_id, "tool_result", {
+                        add_step(evaluation_id, "tool_result", {
                             "tool": msg.name,
                             "output": content,
                         })
@@ -415,48 +445,70 @@ async def run_validation(validation_id: str, payload: ValidateRequest):
                 for block in analysis
             )
 
-        has_issues = any(
-            keyword in analysis.lower()
-            for keyword in ["error", "fail", "broken", "issue", "bug", "not working", "unexpected"]
-        )
+        try:
+            verdict = await classify_verdict(payload.url, payload.description, analysis)
+        except Exception as e:
+            logger.exception("Failed to classify evaluation verdict")
+            update_evaluation(evaluation_id, {
+                "status": "error",
+                "analysis": analysis,
+                "error": f"Failed to classify evaluation result: {e}",
+                "completedAt": datetime.now(timezone.utc).isoformat(),
+            })
+            return
 
-        if has_issues and GITHUB_TOKEN:
-            update_validation(validation_id, {"status": "creating_issue"})
-            issue_title = f"Business validation issue on {payload.url}"
+        if verdict.passed:
+            update_evaluation(evaluation_id, {
+                "status": "evaluated",
+                "passed": True,
+                "summary": verdict.summary,
+                "analysis": analysis,
+                "completedAt": datetime.now(timezone.utc).isoformat(),
+            })
+        elif GITHUB_TOKEN:
+            update_evaluation(evaluation_id, {"status": "creating_issue"})
+            issue_title = f"Business evaluation issue on {payload.url}"
             issue_body = (
-                f"## Validation Report\n\n"
+                f"## Evaluation Report\n\n"
                 f"**URL:** {payload.url}\n"
                 f"**Description:** {payload.description or 'Full site exploration'}\n\n"
+                f"**Summary:** {verdict.summary}\n\n"
                 f"## Findings\n\n{analysis}\n\n"
                 f"---\nGenerated by business-agent"
             )
             try:
                 issue_url = create_github_issue(issue_title, issue_body)
                 logger.info("GitHub issue created: %s", issue_url)
-                update_validation(validation_id, {
+                update_evaluation(evaluation_id, {
                     "status": "issue_created",
+                    "passed": False,
+                    "summary": verdict.summary,
                     "analysis": analysis,
                     "issue_url": issue_url,
                     "completedAt": datetime.now(timezone.utc).isoformat(),
                 })
             except Exception as e:
                 logger.exception("Failed to create GitHub issue")
-                update_validation(validation_id, {
+                update_evaluation(evaluation_id, {
                     "status": "completed",
+                    "passed": False,
+                    "summary": verdict.summary,
                     "analysis": analysis,
-                    "error": f"Validation found issues but failed to create GitHub issue: {e}",
+                    "error": f"Evaluation found issues but failed to create GitHub issue: {e}",
                     "completedAt": datetime.now(timezone.utc).isoformat(),
                 })
         else:
-            update_validation(validation_id, {
-                "status": "no_issues",
+            update_evaluation(evaluation_id, {
+                "status": "completed",
+                "passed": False,
+                "summary": verdict.summary,
                 "analysis": analysis,
                 "completedAt": datetime.now(timezone.utc).isoformat(),
             })
 
     except Exception as e:
-        logger.exception("Error during validation")
-        update_validation(validation_id, {
+        logger.exception("Error during evaluation")
+        update_evaluation(evaluation_id, {
             "status": "error",
             "error": str(e),
             "completedAt": datetime.now(timezone.utc).isoformat(),
@@ -466,20 +518,22 @@ async def run_validation(validation_id: str, payload: ValidateRequest):
         await pw.stop()
 
 
-def _run_validation_in_thread(validation_id: str, payload: ValidateRequest):
-    asyncio.run(run_validation(validation_id, payload))
+def _run_evaluation_in_thread(evaluation_id: str, payload: EvaluateRequest):
+    asyncio.run(run_evaluation(evaluation_id, payload))
 
 
-@app.post("/validate")
-async def validate_url(payload: ValidateRequest):
-    logger.info("Received validation request: %s — %s", payload.url, payload.description)
+@app.post("/evaluate")
+async def evaluate_url(payload: EvaluateRequest):
+    logger.info("Received evaluation request: %s — %s", payload.url, payload.description)
 
-    validation_id = uuid.uuid4().hex[:12]
-    validation = {
-        "id": validation_id,
+    evaluation_id = uuid.uuid4().hex[:12]
+    evaluation = {
+        "id": evaluation_id,
         "url": payload.url,
         "description": payload.description,
         "status": "pending",
+        "passed": None,
+        "summary": "",
         "steps": [],
         "analysis": "",
         "issue_url": "",
@@ -488,30 +542,78 @@ async def validate_url(payload: ValidateRequest):
         "completedAt": "",
     }
 
-    with validations_lock:
-        validations.append(validation)
-        if len(validations) > MAX_VALIDATIONS:
-            del validations[: len(validations) - MAX_VALIDATIONS]
+    with evaluations_lock:
+        evaluations.append(evaluation)
+        if len(evaluations) > MAX_EVALUATIONS:
+            del evaluations[: len(evaluations) - MAX_EVALUATIONS]
 
-    thread = Thread(target=_run_validation_in_thread, args=(validation_id, payload), daemon=True)
+    thread = Thread(target=_run_evaluation_in_thread, args=(evaluation_id, payload), daemon=True)
     thread.start()
 
-    return {"status": "accepted", "validation_id": validation_id}
+    return {"status": "accepted", "evaluation_id": evaluation_id}
 
 
-@app.get("/api/validations")
-async def get_validations():
-    with validations_lock:
-        return list(validations)
+@app.get("/api/evaluations")
+async def get_evaluations():
+    with evaluations_lock:
+        return list(evaluations)
 
 
-@app.get("/api/validations/{validation_id}")
-async def get_validation(validation_id: str):
-    with validations_lock:
-        for v in validations:
-            if v["id"] == validation_id:
+def _to_metadata(v: dict) -> dict:
+    return {
+        "id": v.get("id"),
+        "url": v.get("url"),
+        "description": v.get("description"),
+        "status": v.get("status"),
+        "passed": v.get("passed"),
+        "summary": v.get("summary", ""),
+        "issue_url": v.get("issue_url", ""),
+        "error": v.get("error", ""),
+        "createdAt": v.get("createdAt"),
+        "completedAt": v.get("completedAt", ""),
+    }
+
+
+@app.get("/api/evaluations/metadata")
+async def get_evaluations_metadata(
+    status: str | None = None,
+    passed: bool | None = None,
+    url: str | None = None,
+):
+    """Lightweight metadata feed for other agents.
+
+    Returns evaluations without the full step history. Optional filters:
+    - status: filter by status (e.g. evaluated, issue_created, error)
+    - passed: filter by pass/fail boolean
+    - url: substring match against the evaluated URL
+    """
+    with evaluations_lock:
+        items = [_to_metadata(v) for v in evaluations]
+    if status is not None:
+        items = [v for v in items if v["status"] == status]
+    if passed is not None:
+        items = [v for v in items if v["passed"] is passed]
+    if url:
+        items = [v for v in items if url in (v["url"] or "")]
+    return items
+
+
+@app.get("/api/evaluations/{evaluation_id}")
+async def get_evaluation(evaluation_id: str):
+    with evaluations_lock:
+        for v in evaluations:
+            if v["id"] == evaluation_id:
                 return v
-    raise HTTPException(status_code=404, detail="Validation not found")
+    raise HTTPException(status_code=404, detail="Evaluation not found")
+
+
+@app.get("/api/evaluations/{evaluation_id}/metadata")
+async def get_evaluation_metadata(evaluation_id: str):
+    with evaluations_lock:
+        for v in evaluations:
+            if v["id"] == evaluation_id:
+                return _to_metadata(v)
+    raise HTTPException(status_code=404, detail="Evaluation not found")
 
 
 @app.get("/health")
