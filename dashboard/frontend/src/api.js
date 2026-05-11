@@ -22,6 +22,7 @@ export const api = {
   monitorInvestigations: () => getJSON('api/monitor/investigations'),
   stability: () => getJSON('api/stability'),
   githubPRs: () => getJSON('api/github/prs?state=all'),
+  githubPRsOpen: () => getJSON('api/github/prs?state=open'),
   githubIssues: () => getJSON('api/github/issues?state=all'),
   jaegerErrors: () => getJSON('api/jaeger/errors'),
 }

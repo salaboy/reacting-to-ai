@@ -1,16 +1,10 @@
 import { useState } from 'react'
 import { Overview } from './views/Overview.jsx'
-import { Agents } from './views/Agents.jsx'
-import { Stability } from './views/Stability.jsx'
-import { Github } from './views/Github.jsx'
-import { Errors } from './views/Errors.jsx'
+import { Dora } from './views/Dora.jsx'
 
 const TABS = [
   { id: 'overview', label: 'Overview' },
-  { id: 'agents', label: 'Agents' },
-  { id: 'stability', label: 'Stability' },
-  { id: 'github', label: 'GitHub' },
-  { id: 'errors', label: 'Errors' },
+  { id: 'dora', label: 'DORA' },
 ]
 
 export default function App() {
@@ -28,21 +22,16 @@ export default function App() {
 
       <div className="tabs">
         {TABS.map((t) => (
-          <button
-            key={t.id}
-            className={tab === t.id ? 'active' : ''}
-            onClick={() => setTab(t.id)}
-          >
+          <button key={t.id}
+                  className={tab === t.id ? 'active' : ''}
+                  onClick={() => setTab(t.id)}>
             {t.label}
           </button>
         ))}
       </div>
 
-      {tab === 'overview' && <Overview onNavigate={setTab} />}
-      {tab === 'agents' && <Agents />}
-      {tab === 'stability' && <Stability />}
-      {tab === 'github' && <Github />}
-      {tab === 'errors' && <Errors />}
+      {tab === 'overview' && <Overview />}
+      {tab === 'dora' && <Dora />}
     </div>
   )
 }

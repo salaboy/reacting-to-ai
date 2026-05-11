@@ -85,7 +85,55 @@ button.active { background: var(--accent); border-color: var(--accent); color: #
   grid-template-columns: repeat(3, 1fr);
   gap: 14px;
 }
-@media (max-width: 1100px) { .columns { grid-template-columns: 1fr; } }
+.columns.two { grid-template-columns: repeat(2, 1fr); }
+@media (max-width: 1100px) {
+  .columns,
+  .columns.two { grid-template-columns: 1fr; }
+}
+
+.panel-sub { color: var(--muted); font-size: 12px; margin: -4px 0 10px; }
+
+.row.eval.ok { border-left: 3px solid var(--green); }
+.row.eval.err { border-left: 3px solid var(--red); }
+.row.eval.muted { border-left: 3px solid var(--border); }
+
+.dora-toolbar {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 14px;
+}
+.window-switch { display: flex; gap: 6px; }
+.window-switch button { padding: 4px 10px; font-size: 12px; }
+
+.dora-cards {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 14px;
+  margin-bottom: 8px;
+}
+@media (max-width: 1100px) { .dora-cards { grid-template-columns: repeat(2, 1fr); } }
+@media (max-width: 600px)  { .dora-cards { grid-template-columns: 1fr; } }
+
+.dora-card {
+  background: var(--panel);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 16px;
+  border-top: 3px solid var(--border);
+}
+.dora-card.ok   { border-top-color: var(--green); }
+.dora-card.info { border-top-color: var(--accent); }
+.dora-card.warn { border-top-color: var(--yellow); }
+.dora-card.err  { border-top-color: var(--red); }
+.dora-card .label { color: var(--muted); font-size: 12px; text-transform: uppercase; letter-spacing: 0.05em; }
+.dora-card .value { font-size: 26px; font-weight: 600; margin-top: 6px; }
+.dora-card.ok   .value { color: var(--green); }
+.dora-card.info .value { color: var(--accent); }
+.dora-card.warn .value { color: var(--yellow); }
+.dora-card.err  .value { color: var(--red); }
+.dora-card .sub  { color: var(--muted); font-size: 12px; margin-top: 4px; }
+.dora-card .hint { color: var(--muted); font-size: 11px; margin-top: 8px; opacity: 0.7; }
 
 .panel {
   background: var(--panel);
