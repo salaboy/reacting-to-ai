@@ -1,0 +1,36 @@
+server:
+  service:
+    type: ClusterIP
+  metrics:
+    enabled: true
+    service:
+      annotations: {}
+
+controller:
+  metrics:
+    enabled: true
+    service:
+      annotations: {}
+
+repoServer:
+  metrics:
+    enabled: true
+    service:
+      annotations: {}
+
+applicationSet:
+  metrics:
+    enabled: true
+    service:
+      annotations: {}
+
+notifications:
+  metrics:
+    enabled: true
+    service:
+      annotations: {}
+
+configs:
+  params:
+    otlp.address: "otel-collector-opentelemetry-collector.opentelemetry.svc.cluster.local:4317"
+    otlp.insecure: "true"

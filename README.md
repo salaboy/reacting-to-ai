@@ -87,7 +87,7 @@ The script performs these steps:
 7. Installs cert-manager
 8. Installs the OpenTelemetry Operator
 9. Applies the OpenTelemetry Instrumentation resource
-10. Installs Argo CD and Argo Rollouts
+10. Installs Argo CD (with OTLP tracing to the collector and per-component metrics services enabled) and Argo Rollouts (with its metrics service enabled). The collector scrapes Argo CD and Argo Rollouts Prometheus endpoints and re-exports them through its metrics pipeline.
 11. Installs Argo CD Image Updater (digest-pins `:main` so each new build triggers a blue/green rollout)
 12. Deploys the monitor agent, fixer agent, and business agent
 13. Configures the Argo CD Application (main app from `k8s/`) and the ApplicationSet for per-PR previews

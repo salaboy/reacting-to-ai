@@ -190,14 +190,18 @@ echo ""
 # -------------------------------------------------------
 echo "--- Installing Argo CD ---"
 kubectl create namespace argocd --dry-run=client -o yaml | kubectl apply -f -
+helm repo add argo https://argoproj.github.io/argo-helm 2>/dev/null || true
+helm repo update
 if helm status argocd -n argocd &>/dev/null; then
-  echo "Argo CD is already installed, skipping."
+  echo "Argo CD is already installed, upgrading with OTel-enabled values."
+  helm upgrade argocd argo/argo-cd \
+    --namespace argocd \
+    -f "$OBSERVABILITY_DIR/argocd-values.yaml" \
+    --wait
 else
-  helm repo add argo https://argoproj.github.io/argo-helm 2>/dev/null || true
-  helm repo update
   helm install argocd argo/argo-cd \
     --namespace argocd \
-    --set server.service.type=ClusterIP \
+    -f "$OBSERVABILITY_DIR/argocd-values.yaml" \
     --wait
 fi
 echo "Argo CD pods:"
@@ -210,10 +214,15 @@ echo ""
 echo "--- Installing Argo Rollouts ---"
 kubectl create namespace argo-rollouts --dry-run=client -o yaml | kubectl apply -f -
 if helm status argo-rollouts -n argo-rollouts &>/dev/null; then
-  echo "Argo Rollouts is already installed, skipping."
+  echo "Argo Rollouts is already installed, upgrading with metrics service enabled."
+  helm upgrade argo-rollouts argo/argo-rollouts \
+    --namespace argo-rollouts \
+    -f "$OBSERVABILITY_DIR/argo-rollouts-values.yaml" \
+    --wait
 else
   helm install argo-rollouts argo/argo-rollouts \
     --namespace argo-rollouts \
+    -f "$OBSERVABILITY_DIR/argo-rollouts-values.yaml" \
     --wait
 fi
 echo "Argo Rollouts pods:"
