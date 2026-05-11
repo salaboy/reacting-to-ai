@@ -14,7 +14,7 @@ WORKDIR /app
 COPY requirements.txt .
 RUN pip install --no-cache-dir -r requirements.txt
 
-COPY main.py .
+COPY main.py telemetry.py ./
 COPY --from=frontend-build /app/dist static/
 
 EXPOSE 8081

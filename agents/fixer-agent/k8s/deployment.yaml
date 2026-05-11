@@ -32,6 +32,14 @@ spec:
                   key: github-token
             - name: REPO_URL
               value: https://github.com/salaboy/reacting-to-ai.git
+            - name: OTEL_SERVICE_NAME
+              value: fixer-agent
+            - name: OTEL_EXPORTER_OTLP_ENDPOINT
+              value: http://otel-collector-opentelemetry-collector.opentelemetry.svc.cluster.local:4317
+            - name: OTEL_EXPORTER_OTLP_PROTOCOL
+              value: grpc
+            - name: OTEL_RESOURCE_ATTRIBUTES
+              value: service.namespace=reacting-to-ai
           resources:
             requests:
               memory: 128Mi

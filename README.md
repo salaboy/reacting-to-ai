@@ -28,6 +28,19 @@ Set these to export telemetry to Dash0 in addition to Jaeger. If `DASH0_AUTH_TOK
 | `DASH0_ENDPOINT_OTLP_GRPC_PORT` | `4317` | Dash0 gRPC endpoint port |
 | `DASH0_DATASET` | `salaboy` | Dash0 dataset name |
 
+### Dash0 for GitHub Actions CI traces (optional)
+
+The `.github/workflows/otel-traces.yaml` workflow exports traces for each completed CI run to Dash0 using [corentinmusard/otel-cicd-action](https://github.com/corentinmusard/otel-cicd-action) (per [Dash0's GitHub Actions observability guide](https://www.dash0.com/guides/github-actions-observability-opentelemetry-tracing)). It re-uses the same variable names as the cluster setup, configured at the repository level:
+
+| Repository setting | Type | Default | Maps to |
+|---|---|---|---|
+| `DASH0_AUTH_TOKEN` | Secret | *(none — disables export)* | `Authorization: Bearer …` header |
+| `DASH0_ENDPOINT_OTLP_GRPC_HOSTNAME` | Variable | `ingress.eu-west-1.aws.dash0.com` | OTLP endpoint host |
+| `DASH0_ENDPOINT_OTLP_GRPC_PORT` | Variable | `4317` | OTLP endpoint port |
+| `DASH0_DATASET` | Variable | `salaboy` | `Dash0-Dataset` header |
+
+Set them in **Settings → Secrets and variables → Actions** (secret for the token, repository variables for the others).
+
 ### Cluster name (optional)
 
 | Variable | Default | Description |

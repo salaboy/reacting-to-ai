@@ -9,10 +9,15 @@ from fastapi import FastAPI
 from fastapi.staticfiles import StaticFiles
 from pydantic import BaseModel
 
+from telemetry import init_telemetry, instrument_fastapi
+
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger("monitor-agent")
 
+init_telemetry("monitor-agent")
+
 app = FastAPI(title="Monitor Agent")
+instrument_fastapi(app)
 
 FIXER_AGENT_URL = os.getenv("FIXER_AGENT_URL", "http://fixer-agent.default.svc.cluster.local:8081")
 JAEGER_QUERY_URL = os.getenv("JAEGER_QUERY_URL", "http://jaeger-query.default.svc.cluster.local:16686")

@@ -1,0 +1,45 @@
+name: Export OpenTelemetry Trace for CI
+
+# Exports traces of completed CI workflow runs to Dash0 via OTLP/gRPC.
+# Uses the same Dash0 variable names as scripts/setup-cluster.sh:
+#   secrets.DASH0_AUTH_TOKEN                 (required — exporter is skipped if empty)
+#   vars.DASH0_ENDPOINT_OTLP_GRPC_HOSTNAME   (defaults to ingress.eu-west-1.aws.dash0.com)
+#   vars.DASH0_ENDPOINT_OTLP_GRPC_PORT       (defaults to 4317)
+#   vars.DASH0_DATASET                       (defaults to salaboy)
+#
+# Based on https://www.dash0.com/guides/github-actions-observability-opentelemetry-tracing
+
+on:
+  workflow_run:
+    workflows:
+      - "Build and Push Container Image"
+      - "Build and Push Business Agent"
+      - "Build and Push Fixer Agent"
+      - "Build and Push Monitor Agent"
+      - "AI PR Review"
+    types: [completed]
+
+permissions:
+  actions: read
+  contents: read
+
+jobs:
+  otel-export-trace:
+    name: OpenTelemetry Export Trace
+    runs-on: ubuntu-latest
+    env:
+      HAS_DASH0_TOKEN: ${{ secrets.DASH0_AUTH_TOKEN != '' }}
+    steps:
+      - name: Skip if Dash0 not configured
+        if: env.HAS_DASH0_TOKEN != 'true'
+        run: |
+          echo "DASH0_AUTH_TOKEN secret is not set; skipping trace export."
+
+      - name: Export Workflow Trace to Dash0
+        if: env.HAS_DASH0_TOKEN == 'true'
+        uses: corentinmusard/otel-cicd-action@v1
+        with:
+          otlpEndpoint: grpc://${{ vars.DASH0_ENDPOINT_OTLP_GRPC_HOSTNAME || 'ingress.eu-west-1.aws.dash0.com' }}:${{ vars.DASH0_ENDPOINT_OTLP_GRPC_PORT || '4317' }}
+          otlpHeaders: "Authorization=Bearer ${{ secrets.DASH0_AUTH_TOKEN }},Dash0-Dataset=${{ vars.DASH0_DATASET || 'salaboy' }}"
+          githubToken: ${{ secrets.GITHUB_TOKEN }}
+          runId: ${{ github.event.workflow_run.id }}

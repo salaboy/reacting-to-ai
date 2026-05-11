@@ -28,6 +28,14 @@ spec:
               value: /jaeger/ui
             - name: JAEGER_EXTERNAL_URL
               value: http://localhost/jaeger/ui
+            - name: OTEL_SERVICE_NAME
+              value: monitor-agent
+            - name: OTEL_EXPORTER_OTLP_ENDPOINT
+              value: http://otel-collector-opentelemetry-collector.opentelemetry.svc.cluster.local:4317
+            - name: OTEL_EXPORTER_OTLP_PROTOCOL
+              value: grpc
+            - name: OTEL_RESOURCE_ATTRIBUTES
+              value: service.namespace=reacting-to-ai
           resources:
             requests:
               memory: 64Mi

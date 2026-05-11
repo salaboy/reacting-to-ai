@@ -17,10 +17,15 @@ from langchain_core.tools import tool
 from langchain_core.messages import AIMessage, ToolMessage
 from playwright.async_api import async_playwright
 
+from telemetry import init_telemetry, instrument_fastapi
+
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger("business-agent")
 
+init_telemetry("business-agent")
+
 app = FastAPI(title="Business Agent")
+instrument_fastapi(app)
 
 REPO_URL = os.getenv("REPO_URL", "https://github.com/salaboy/reacting-to-ai.git")
 GITHUB_TOKEN = os.getenv("GITHUB_TOKEN", "")

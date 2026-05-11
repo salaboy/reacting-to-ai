@@ -17,10 +17,15 @@ from langgraph.prebuilt import create_react_agent
 from langchain_core.tools import tool
 from langchain_core.messages import AIMessage, ToolMessage
 
+from telemetry import init_telemetry, instrument_fastapi
+
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger("fixer-agent")
 
+init_telemetry("fixer-agent")
+
 app = FastAPI(title="Fixer Agent")
+instrument_fastapi(app)
 
 REPO_URL = os.getenv("REPO_URL", "https://github.com/salaboy/reacting-to-ai.git")
 GITHUB_TOKEN = os.getenv("GITHUB_TOKEN", "")
