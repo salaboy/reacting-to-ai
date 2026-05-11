@@ -102,6 +102,7 @@ All UIs are accessible via the NGINX Ingress Controller on `http://localhost`:
 | Application (active) | http://localhost/ |
 | Application (preview) | http://localhost/preview |
 | Application (per-PR) | http://localhost/pr/&lt;number&gt;/ |
+| Dashboard | http://localhost/dashboard/ |
 | Monitor Agent | http://localhost/monitor/ |
 | Fixer Agent | http://localhost/fixer/ |
 | Jaeger | http://localhost/jaeger/ui |
@@ -161,6 +162,7 @@ kubectl -n argocd get secret argocd-initial-admin-secret -o jsonpath='{.data.pas
 ├── agents/
 │   ├── monitor-agent/               # Receives Alertmanager webhooks, queries Jaeger for related traces
 │   └── fixer-agent/                 # AI agent that analyzes code and creates fix PRs
+├── dashboard/                       # Go + React aggregator UI for agent activity, alerts, PRs, stability
 ├── scripts/
 │   └── setup-cluster.sh             # Full cluster setup script
 └── .github/workflows/               # CI/CD pipelines for container images

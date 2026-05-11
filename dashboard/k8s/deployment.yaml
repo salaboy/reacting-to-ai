@@ -1,0 +1,68 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: dashboard-app
+  labels:
+    app: dashboard-app
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: dashboard-app
+  template:
+    metadata:
+      labels:
+        app: dashboard-app
+    spec:
+      containers:
+        - name: dashboard-app
+          image: ghcr.io/salaboy/reacting-to-ai/dashboard:main
+          ports:
+            - containerPort: 8085
+          env:
+            - name: PORT
+              value: "8085"
+            - name: BUSINESS_AGENT_URL
+              value: http://business-agent.default.svc.cluster.local:8083
+            - name: FIXER_AGENT_URL
+              value: http://fixer-agent.default.svc.cluster.local:8081
+            - name: MONITOR_AGENT_URL
+              value: http://monitor-agent.default.svc.cluster.local:8082
+            - name: PROMETHEUS_URL
+              value: http://prometheus-kube-prometheus-prometheus.monitoring.svc.cluster.local:9090
+            - name: JAEGER_URL
+              value: http://jaeger-query.default.svc.cluster.local:16686
+            - name: GITHUB_REPO
+              value: salaboy/reacting-to-ai
+            - name: GITHUB_TOKEN
+              valueFrom:
+                secretKeyRef:
+                  name: fixer-agent-secrets
+                  key: github-token
+                  optional: true
+            - name: OTEL_SERVICE_NAME
+              value: dashboard-app
+            - name: OTEL_EXPORTER_OTLP_ENDPOINT
+              value: http://otel-collector-opentelemetry-collector.opentelemetry.svc.cluster.local:4317
+            - name: OTEL_EXPORTER_OTLP_PROTOCOL
+              value: grpc
+            - name: OTEL_RESOURCE_ATTRIBUTES
+              value: service.namespace=reacting-to-ai
+          livenessProbe:
+            httpGet:
+              path: /health
+              port: 8085
+            initialDelaySeconds: 5
+            periodSeconds: 10
+          readinessProbe:
+            httpGet:
+              path: /health
+              port: 8085
+            initialDelaySeconds: 3
+            periodSeconds: 5
+          resources:
+            requests:
+              memory: 64Mi
+              cpu: 50m
+            limits:
+              memory: 128Mi

@@ -289,6 +289,11 @@ kubectl apply -f "$PROJECT_ROOT/agents/business-agent/k8s/"
 echo "Business Agent deployed."
 echo ""
 
+echo "--- Deploying Dashboard ---"
+kubectl apply -f "$PROJECT_ROOT/dashboard/k8s/"
+echo "Dashboard deployed."
+echo ""
+
 # -------------------------------------------------------
 # 12. Deploy application via Argo CD
 # -------------------------------------------------------
@@ -329,6 +334,7 @@ echo "  Application (PR <n>):   http://localhost/pr/<n>/      (per-PR preview, w
 echo "  Monitor Agent:          http://localhost/monitor/"
 echo "  Fixer Agent:            http://localhost/fixer/"
 echo "  Business Agent:         http://localhost/business/"
+echo "  Dashboard:              http://localhost/dashboard/"
 echo "  Jaeger:                 http://localhost/jaeger/ui"
 echo "  Prometheus:             http://localhost/prometheus/"
 echo "  Alertmanager:           http://localhost/alertmanager/"
