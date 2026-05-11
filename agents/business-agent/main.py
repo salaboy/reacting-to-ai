@@ -30,6 +30,89 @@ instrument_fastapi(app)
 REPO_URL = os.getenv("REPO_URL", "https://github.com/salaboy/reacting-to-ai.git")
 GITHUB_TOKEN = os.getenv("GITHUB_TOKEN", "")
 ANTHROPIC_MODEL = os.getenv("ANTHROPIC_MODEL", "claude-sonnet-4-5-20250929")
+DEFAULT_TARGET_URL = os.getenv(
+    "DEFAULT_TARGET_URL", "http://homebanking-app.default.svc.cluster.local"
+)
+PR_TARGET_URL_TEMPLATE = os.getenv(
+    "PR_TARGET_URL_TEMPLATE", "http://homebanking-app.pr-{number}.svc.cluster.local"
+)
+
+
+VALIDATION_CATALOG: list[dict] = [
+    {
+        "id": "support-tab",
+        "name": "Support tab",
+        "description": (
+            "Open the Support tab and verify the page loads with no errors. "
+            "Check that the help articles, FAQs, and contact options are visible."
+        ),
+    },
+    {
+        "id": "contact-representative",
+        "name": "Contact a representative",
+        "description": (
+            "From the Support area, use the 'Contact a representative' functionality. "
+            "Fill in the contact form with a sample name, email and message, submit it, "
+            "and confirm the confirmation/acknowledgement is shown without errors."
+        ),
+    },
+    {
+        "id": "login-flow",
+        "name": "Login flow",
+        "description": (
+            "Locate the login form, sign in with the demo user, and verify the "
+            "authenticated dashboard loads without errors."
+        ),
+    },
+    {
+        "id": "account-overview",
+        "name": "Account overview",
+        "description": (
+            "Open the main account / dashboard view and check balances, account list "
+            "and recent transactions render correctly."
+        ),
+    },
+    {
+        "id": "transfer-funds",
+        "name": "Transfer funds between accounts",
+        "description": (
+            "Use the 'Transfer' feature to move a small amount between two accounts. "
+            "Confirm the transfer is accepted and the confirmation screen is shown."
+        ),
+    },
+    {
+        "id": "pay-bill",
+        "name": "Pay a bill",
+        "description": (
+            "Use the 'Pay a bill' / 'Bill pay' feature, fill in payee details and "
+            "an amount, submit and verify the confirmation."
+        ),
+    },
+    {
+        "id": "transactions-history",
+        "name": "Transactions history",
+        "description": (
+            "Open the transactions / activity page and verify the list renders, "
+            "filters/search work, and pagination (if any) does not produce errors."
+        ),
+    },
+    {
+        "id": "profile-settings",
+        "name": "Profile settings update",
+        "description": (
+            "Open profile / account settings, update a field (e.g. phone number "
+            "or address), save it and confirm the update succeeds."
+        ),
+    },
+    {
+        "id": "logout",
+        "name": "Logout flow",
+        "description": (
+            "Use the logout action and verify the user is returned to the public "
+            "landing/login page with no errors."
+        ),
+    },
+]
 
 SYSTEM_PROMPT = (
     "You are a business evaluation agent. You interact with web applications "
@@ -619,6 +702,70 @@ async def get_evaluation_metadata(evaluation_id: str):
             if v["id"] == evaluation_id:
                 return _to_metadata(v)
     raise HTTPException(status_code=404, detail="Evaluation not found")
+
+
+@app.get("/api/catalog")
+async def get_catalog():
+    """Predefined validations that can be launched with one click."""
+    return VALIDATION_CATALOG
+
+
+@app.get("/api/targets")
+async def get_targets():
+    """Available evaluation targets: the default cluster URL plus open PR previews.
+
+    PR previews are derived from open pull requests on the configured repo. The
+    UI shows them disabled when GITHUB_TOKEN is missing or the API call fails,
+    but the default target is always returned so the page works offline.
+    """
+    targets: list[dict] = [
+        {
+            "id": "default",
+            "label": "Default (default namespace)",
+            "url": DEFAULT_TARGET_URL,
+            "kind": "default",
+        }
+    ]
+
+    parts = REPO_URL.rstrip("/").removesuffix(".git").split("/")
+    if len(parts) < 2:
+        return {"targets": targets, "error": "REPO_URL is malformed"}
+    owner, repo = parts[-2], parts[-1]
+
+    headers = {"Accept": "application/vnd.github+json"}
+    if GITHUB_TOKEN:
+        headers["Authorization"] = f"Bearer {GITHUB_TOKEN}"
+
+    try:
+        resp = requests.get(
+            f"https://api.github.com/repos/{owner}/{repo}/pulls",
+            headers=headers,
+            params={"state": "open", "per_page": 50},
+            timeout=10,
+        )
+        resp.raise_for_status()
+        prs = resp.json()
+    except Exception as e:
+        logger.warning("Failed to fetch pull requests: %s", e)
+        return {"targets": targets, "error": str(e)}
+
+    for pr in prs:
+        number = pr.get("number")
+        if number is None:
+            continue
+        targets.append({
+            "id": f"pr-{number}",
+            "label": f"PR #{number} — {pr.get('title', '')}",
+            "url": PR_TARGET_URL_TEMPLATE.format(number=number),
+            "kind": "pr",
+            "pr_number": number,
+            "pr_url": pr.get("html_url", ""),
+            "pr_title": pr.get("title", ""),
+            "pr_author": (pr.get("user") or {}).get("login", ""),
+            "pr_head_sha": (pr.get("head") or {}).get("sha", ""),
+        })
+
+    return {"targets": targets}
 
 
 @app.get("/health")

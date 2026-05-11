@@ -34,6 +34,117 @@ h1 {
   padding: 48px 0;
 }
 
+/* Target selector */
+
+.target-selector {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  margin-bottom: 24px;
+  padding: 14px 16px;
+  background: #f9fafb;
+  border: 1px solid #e5e7eb;
+  border-radius: 8px;
+}
+
+.target-label {
+  font-size: 0.75rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  color: #374151;
+}
+
+.target-url {
+  margin: 0;
+  font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+  font-size: 0.78rem;
+  color: #4b5563;
+  word-break: break-all;
+}
+
+.targets-loading {
+  color: #6b7280;
+  font-size: 0.85rem;
+  margin: 0 0 24px;
+}
+
+.targets-error {
+  margin: 0;
+  font-size: 0.75rem;
+  color: #b45309;
+}
+
+/* Section title */
+
+.section-title {
+  font-size: 0.85rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  color: #374151;
+  margin: 24px 0 12px;
+}
+
+/* Validation catalog */
+
+.catalog-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+  gap: 10px;
+  margin-bottom: 8px;
+}
+
+.catalog-card {
+  display: flex;
+  flex-direction: column;
+  padding: 12px 14px;
+  background: #ffffff;
+  border: 1px solid #e5e7eb;
+  border-radius: 8px;
+}
+
+.catalog-card-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.catalog-name {
+  font-weight: 700;
+  font-size: 0.9rem;
+  color: #111827;
+}
+
+.catalog-description {
+  margin: 6px 0 10px;
+  font-size: 0.78rem;
+  color: #4b5563;
+  line-height: 1.35;
+  flex: 1;
+}
+
+.catalog-run-btn {
+  align-self: flex-start;
+  padding: 6px 14px;
+  background: #16a34a;
+  color: white;
+  border: none;
+  border-radius: 6px;
+  font-size: 0.8rem;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.catalog-run-btn:hover:not(:disabled) {
+  background: #15803d;
+}
+
+.catalog-run-btn:disabled {
+  background: #9ca3af;
+  cursor: not-allowed;
+}
+
 /* New evaluation form */
 
 .new-evaluation-form {

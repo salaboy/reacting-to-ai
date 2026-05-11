@@ -198,28 +198,95 @@ function EvaluationDetail({ id, onBack }) {
   )
 }
 
-function NewEvaluationForm({ onSubmit }) {
-  const [url, setUrl] = useState('')
+async function submitEvaluation(url, description) {
+  const res = await fetch('/business/evaluate', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ url, description }),
+  })
+  return res.ok
+}
+
+function TargetSelector({ targets, targetsError, selectedId, onChange }) {
+  if (!targets) return <p className="targets-loading">Loading targets...</p>
+
+  const selected = targets.find(t => t.id === selectedId) || targets[0]
+
+  return (
+    <div className="target-selector">
+      <label className="target-label">Target environment</label>
+      <select
+        className="form-input"
+        value={selected?.id || ''}
+        onChange={(e) => onChange(e.target.value)}
+      >
+        {targets.map(t => (
+          <option key={t.id} value={t.id}>{t.label}</option>
+        ))}
+      </select>
+      {selected && <p className="target-url">{selected.url}</p>}
+      {targetsError && (
+        <p className="targets-error">
+          Could not fetch open pull requests: {targetsError}
+        </p>
+      )}
+    </div>
+  )
+}
+
+function ValidationCatalog({ catalog, targetUrl, onLaunched }) {
+  const [runningId, setRunningId] = useState(null)
+
+  if (!catalog || catalog.length === 0) {
+    return <p className="empty">No predefined validations available.</p>
+  }
+
+  const run = async (item) => {
+    if (!targetUrl) return
+    setRunningId(item.id)
+    try {
+      const ok = await submitEvaluation(targetUrl, item.description)
+      if (ok) onLaunched()
+    } finally {
+      setRunningId(null)
+    }
+  }
+
+  return (
+    <div className="catalog-grid">
+      {catalog.map(item => (
+        <div key={item.id} className="catalog-card">
+          <div className="catalog-card-header">
+            <span className="catalog-name">{item.name}</span>
+          </div>
+          <p className="catalog-description">{item.description}</p>
+          <button
+            className="catalog-run-btn"
+            onClick={() => run(item)}
+            disabled={!targetUrl || runningId === item.id}
+          >
+            {runningId === item.id ? 'Launching...' : 'Run'}
+          </button>
+        </div>
+      ))}
+    </div>
+  )
+}
+
+function CustomEvaluationForm({ targetUrl, onSubmit }) {
   const [description, setDescription] = useState('')
   const [submitting, setSubmitting] = useState(false)
 
   const handleSubmit = async (e) => {
     e.preventDefault()
-    if (!url.trim()) return
+    if (!targetUrl) return
     setSubmitting(true)
     try {
-      const res = await fetch('/business/evaluate', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ url: url.trim(), description: description.trim() }),
-      })
-      if (res.ok) {
-        setUrl('')
+      const ok = await submitEvaluation(targetUrl, description.trim())
+      if (ok) {
         setDescription('')
         onSubmit()
       }
-    } catch {
-      // ignore
     } finally {
       setSubmitting(false)
     }
@@ -228,22 +295,14 @@ function NewEvaluationForm({ onSubmit }) {
   return (
     <form className="new-evaluation-form" onSubmit={handleSubmit}>
       <input
-        type="url"
-        placeholder="https://example.com"
-        value={url}
-        onChange={(e) => setUrl(e.target.value)}
-        required
-        className="form-input"
-      />
-      <input
         type="text"
-        placeholder="Actions to check (optional)"
+        placeholder="Describe the actions to check (leave empty to fully explore)"
         value={description}
         onChange={(e) => setDescription(e.target.value)}
         className="form-input"
       />
-      <button type="submit" disabled={submitting || !url.trim()} className="form-submit">
-        {submitting ? 'Submitting...' : 'Evaluate'}
+      <button type="submit" disabled={submitting || !targetUrl} className="form-submit">
+        {submitting ? 'Submitting...' : 'Run custom evaluation'}
       </button>
     </form>
   )
@@ -252,6 +311,10 @@ function NewEvaluationForm({ onSubmit }) {
 function App() {
   const [evaluations, setEvaluations] = useState([])
   const [selectedId, setSelectedId] = useState(null)
+  const [targets, setTargets] = useState(null)
+  const [targetsError, setTargetsError] = useState('')
+  const [selectedTargetId, setSelectedTargetId] = useState('default')
+  const [catalog, setCatalog] = useState([])
 
   const fetchEvaluations = async () => {
     try {
@@ -263,10 +326,38 @@ function App() {
     }
   }
 
+  const fetchTargets = async () => {
+    try {
+      const res = await fetch('/business/api/targets')
+      const data = await res.json()
+      setTargets(data.targets || [])
+      setTargetsError(data.error || '')
+    } catch (e) {
+      setTargets([])
+      setTargetsError(String(e))
+    }
+  }
+
+  const fetchCatalog = async () => {
+    try {
+      const res = await fetch('/business/api/catalog')
+      const data = await res.json()
+      setCatalog(data || [])
+    } catch {
+      setCatalog([])
+    }
+  }
+
   useEffect(() => {
     fetchEvaluations()
+    fetchTargets()
+    fetchCatalog()
     const interval = setInterval(fetchEvaluations, 3000)
-    return () => clearInterval(interval)
+    const targetsInterval = setInterval(fetchTargets, 30000)
+    return () => {
+      clearInterval(interval)
+      clearInterval(targetsInterval)
+    }
   }, [])
 
   if (selectedId) {
@@ -275,6 +366,8 @@ function App() {
 
   const active = evaluations.filter(e => ACTIVE_STATUSES.includes(e.status))
   const completed = evaluations.filter(e => !ACTIVE_STATUSES.includes(e.status))
+  const selectedTarget = (targets || []).find(t => t.id === selectedTargetId) || (targets || [])[0]
+  const targetUrl = selectedTarget?.url || ''
 
   return (
     <div className="app">
@@ -284,7 +377,22 @@ function App() {
         <span className="badge">{evaluations.length}</span>
       </p>
 
-      <NewEvaluationForm onSubmit={fetchEvaluations} />
+      <TargetSelector
+        targets={targets}
+        targetsError={targetsError}
+        selectedId={selectedTargetId}
+        onChange={setSelectedTargetId}
+      />
+
+      <h2 className="section-title">Predefined validations</h2>
+      <ValidationCatalog
+        catalog={catalog}
+        targetUrl={targetUrl}
+        onLaunched={fetchEvaluations}
+      />
+
+      <h2 className="section-title">Custom evaluation</h2>
+      <CustomEvaluationForm targetUrl={targetUrl} onSubmit={fetchEvaluations} />
 
       {evaluations.length === 0 && (
         <p className="empty">No evaluations yet. Submit a URL above to get started.</p>
