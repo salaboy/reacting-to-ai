@@ -59,16 +59,25 @@ fi
 echo ""
 
 # -------------------------------------------------------
-# 2. Install Jaeger
+# 2. Add all Helm repos and update once
+# -------------------------------------------------------
+echo "--- Adding Helm repos ---"
+helm repo add jaegertracing https://jaegertracing.github.io/helm-charts 2>/dev/null || true
+helm repo add prometheus-community https://prometheus-community.github.io/helm-charts 2>/dev/null || true
+helm repo add open-telemetry https://open-telemetry.github.io/opentelemetry-helm-charts 2>/dev/null || true
+helm repo add jetstack https://charts.jetstack.io --force-update
+helm repo add argo https://argoproj.github.io/argo-helm 2>/dev/null || true
+helm repo update
+echo ""
+
+# -------------------------------------------------------
+# 2b. Install Jaeger
 # -------------------------------------------------------
 echo "--- Installing Jaeger ---"
-helm repo add jaegertracing https://jaegertracing.github.io/helm-charts 2>/dev/null || true
-helm repo update
-if helm status jaeger &>/dev/null; then
-  echo "Jaeger is already installed, skipping."
-else
-  helm install jaeger jaegertracing/jaeger --version 3.4.1 -f "$OBSERVABILITY_DIR/jaeger-values.yaml" --wait
-fi
+helm upgrade --install jaeger jaegertracing/jaeger \
+  --version 3.4.1 \
+  -f "$OBSERVABILITY_DIR/jaeger-values.yaml" \
+  --wait
 echo "Jaeger pods:"
 kubectl get pods -l app.kubernetes.io/name=jaeger
 echo ""
@@ -103,20 +112,10 @@ echo ""
 # 4. Install Prometheus & Alertmanager
 # -------------------------------------------------------
 echo "--- Installing Prometheus & Alertmanager ---"
-helm repo add prometheus-community https://prometheus-community.github.io/helm-charts 2>/dev/null || true
-helm repo update
-if helm status prometheus -n monitoring &>/dev/null; then
-  echo "Prometheus is already installed, upgrading with current config."
-  helm upgrade prometheus prometheus-community/kube-prometheus-stack \
-    --namespace monitoring \
-    -f "$OBSERVABILITY_DIR/prometheus-values.yaml" \
-    --wait
-else
-  helm install prometheus prometheus-community/kube-prometheus-stack \
-    --namespace monitoring --create-namespace \
-    -f "$OBSERVABILITY_DIR/prometheus-values.yaml" \
-    --wait
-fi
+helm upgrade --install prometheus prometheus-community/kube-prometheus-stack \
+  --namespace monitoring --create-namespace \
+  -f "$OBSERVABILITY_DIR/prometheus-values.yaml" \
+  --wait
 echo "Prometheus & Alertmanager pods:"
 kubectl get pods -n monitoring
 echo ""
@@ -125,20 +124,10 @@ echo ""
 # 5. Install OpenTelemetry Collector (with spanmetrics)
 # -------------------------------------------------------
 echo "--- Installing OpenTelemetry Collector ---"
-helm repo add open-telemetry https://open-telemetry.github.io/opentelemetry-helm-charts 2>/dev/null || true
-helm repo update
-if helm status otel-collector -n opentelemetry &>/dev/null; then
-  echo "OpenTelemetry Collector is already installed, upgrading with current config."
-  helm upgrade otel-collector open-telemetry/opentelemetry-collector \
-    --namespace opentelemetry \
-    -f "$COLLECTOR_VALUES" \
-    --wait
-else
-  helm install otel-collector open-telemetry/opentelemetry-collector \
-    --namespace opentelemetry \
-    -f "$COLLECTOR_VALUES" \
-    --wait
-fi
+helm upgrade --install otel-collector open-telemetry/opentelemetry-collector \
+  --namespace opentelemetry \
+  -f "$COLLECTOR_VALUES" \
+  --wait
 echo "OpenTelemetry Collector pods:"
 kubectl get pods -n opentelemetry -l app.kubernetes.io/name=opentelemetry-collector
 echo ""
@@ -147,16 +136,10 @@ echo ""
 # 6. Install cert-manager
 # -------------------------------------------------------
 echo "--- Installing cert-manager ---"
-helm repo add jetstack https://charts.jetstack.io --force-update
-helm repo update
-if helm status cert-manager -n cert-manager &>/dev/null; then
-  echo "cert-manager is already installed, skipping."
-else
-  helm upgrade --install cert-manager jetstack/cert-manager \
-    --namespace cert-manager --create-namespace \
-    --set crds.enabled=true \
-    --wait
-fi
+helm upgrade --install cert-manager jetstack/cert-manager \
+  --namespace cert-manager --create-namespace \
+  --set crds.enabled=true \
+  --wait
 echo "cert-manager pods:"
 kubectl get pods -n cert-manager
 echo ""
@@ -165,14 +148,10 @@ echo ""
 # 7. Install OpenTelemetry Operator
 # -------------------------------------------------------
 echo "--- Installing OpenTelemetry Operator ---"
-if helm status opentelemetry-operator -n opentelemetry &>/dev/null; then
-  echo "OpenTelemetry Operator is already installed, skipping."
-else
-  helm upgrade --install opentelemetry-operator open-telemetry/opentelemetry-operator \
-    --namespace opentelemetry \
-    --set manager.extraArgs='{--enable-go-instrumentation}' \
-    --wait
-fi
+helm upgrade --install opentelemetry-operator open-telemetry/opentelemetry-operator \
+  --namespace opentelemetry \
+  --set manager.extraArgs='{--enable-go-instrumentation}' \
+  --wait
 echo "OpenTelemetry Operator pods:"
 kubectl get pods -n opentelemetry -l app.kubernetes.io/name=opentelemetry-operator
 echo ""
@@ -190,20 +169,10 @@ echo ""
 # -------------------------------------------------------
 echo "--- Installing Argo CD ---"
 kubectl create namespace argocd --dry-run=client -o yaml | kubectl apply -f -
-helm repo add argo https://argoproj.github.io/argo-helm 2>/dev/null || true
-helm repo update
-if helm status argocd -n argocd &>/dev/null; then
-  echo "Argo CD is already installed, upgrading with OTel-enabled values."
-  helm upgrade argocd argo/argo-cd \
-    --namespace argocd \
-    -f "$OBSERVABILITY_DIR/argocd-values.yaml" \
-    --wait
-else
-  helm install argocd argo/argo-cd \
-    --namespace argocd \
-    -f "$OBSERVABILITY_DIR/argocd-values.yaml" \
-    --wait
-fi
+helm upgrade --install argocd argo/argo-cd \
+  --namespace argocd \
+  -f "$OBSERVABILITY_DIR/argocd-values.yaml" \
+  --wait
 echo "Argo CD pods:"
 kubectl get pods -n argocd
 echo ""
@@ -213,18 +182,10 @@ echo ""
 # -------------------------------------------------------
 echo "--- Installing Argo Rollouts ---"
 kubectl create namespace argo-rollouts --dry-run=client -o yaml | kubectl apply -f -
-if helm status argo-rollouts -n argo-rollouts &>/dev/null; then
-  echo "Argo Rollouts is already installed, upgrading with metrics service enabled."
-  helm upgrade argo-rollouts argo/argo-rollouts \
-    --namespace argo-rollouts \
-    -f "$OBSERVABILITY_DIR/argo-rollouts-values.yaml" \
-    --wait
-else
-  helm install argo-rollouts argo/argo-rollouts \
-    --namespace argo-rollouts \
-    -f "$OBSERVABILITY_DIR/argo-rollouts-values.yaml" \
-    --wait
-fi
+helm upgrade --install argo-rollouts argo/argo-rollouts \
+  --namespace argo-rollouts \
+  -f "$OBSERVABILITY_DIR/argo-rollouts-values.yaml" \
+  --wait
 echo "Argo Rollouts pods:"
 kubectl get pods -n argo-rollouts
 echo ""
@@ -259,15 +220,11 @@ stringData:
   password: $GITHUB_TOKEN
 EOF
 
-if helm status argocd-image-updater -n argocd &>/dev/null; then
-  echo "Argo CD Image Updater is already installed, skipping."
-else
-  helm install argocd-image-updater argo/argocd-image-updater \
-    --namespace argocd \
-    --set config.gitCommitUser=argocd-image-updater \
-    --set config.gitCommitMail=argocd-image-updater@noreply.local \
-    --wait
-fi
+helm upgrade --install argocd-image-updater argo/argocd-image-updater \
+  --namespace argocd \
+  --set config.gitCommitUser=argocd-image-updater \
+  --set config.gitCommitMail=argocd-image-updater@noreply.local \
+  --wait
 echo "Argo CD Image Updater pods:"
 kubectl get pods -n argocd -l app.kubernetes.io/name=argocd-image-updater
 echo ""
