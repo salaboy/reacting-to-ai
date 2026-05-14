@@ -11,6 +11,7 @@ from threading import Thread, Lock
 import requests
 from fastapi import FastAPI, HTTPException
 from fastapi.staticfiles import StaticFiles
+from fastapi.responses import HTMLResponse
 from pydantic import BaseModel
 from langchain_anthropic import ChatAnthropic
 from langgraph.prebuilt import create_react_agent
@@ -523,3 +524,20 @@ async def health():
 static_dir = Path(__file__).parent / "static"
 if static_dir.is_dir():
     app.mount("/", StaticFiles(directory=static_dir, html=True), name="frontend")
+else:
+    logger.warning("Static directory not found at %s, serving fallback response", static_dir)
+    
+    @app.get("/")
+    async def root():
+        return HTMLResponse(content="""
+        <!DOCTYPE html>
+        <html>
+        <head>
+            <title>Fixer Agent</title>
+        </head>
+        <body>
+            <h1>Fixer Agent</h1>
+            <p>Frontend not available. API endpoints are accessible at /api/</p>
+        </body>
+        </html>
+        """)
