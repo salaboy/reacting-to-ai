@@ -6,6 +6,7 @@ primary:
   initdb:
     scripts:
       init.sql: |
+        \c knowledge
         CREATE EXTENSION IF NOT EXISTS vector;
   persistence:
     enabled: true
