@@ -124,6 +124,27 @@ spec:
 apiVersion: networking.k8s.io/v1
 kind: Ingress
 metadata:
+  name: knowledge-agent-ingress
+  annotations:
+    nginx.ingress.kubernetes.io/rewrite-target: /$2
+    nginx.ingress.kubernetes.io/use-regex: "true"
+spec:
+  ingressClassName: nginx
+  rules:
+    - http:
+        paths:
+          # Knowledge Agent: http://localhost/knowledge(/|$)(.*)
+          - path: /knowledge(/|$)(.*)
+            pathType: ImplementationSpecific
+            backend:
+              service:
+                name: knowledge-agent
+                port:
+                  number: 8084
+---
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
   name: jaeger-ingress
 spec:
   ingressClassName: nginx

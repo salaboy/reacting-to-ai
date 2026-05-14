@@ -1,0 +1,12 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: knowledge-agent
+  labels:
+    app: knowledge-agent
+spec:
+  selector:
+    app: knowledge-agent
+  ports:
+    - port: 8084
+      targetPort: 8084

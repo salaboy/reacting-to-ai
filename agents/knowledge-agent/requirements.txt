@@ -1,0 +1,11 @@
+fastapi==0.115.12
+uvicorn==0.34.2
+psycopg2-binary>=2.9
+pgvector>=0.3
+sentence-transformers>=3.0
+requests>=2.32
+opentelemetry-sdk>=1.27.0
+opentelemetry-exporter-otlp-proto-grpc>=1.27.0
+opentelemetry-instrumentation-fastapi>=0.48b0
+opentelemetry-instrumentation-requests>=0.48b0
+opentelemetry-instrumentation-logging>=0.48b0

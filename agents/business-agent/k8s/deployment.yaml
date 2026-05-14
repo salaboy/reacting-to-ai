@@ -40,6 +40,8 @@ spec:
               value: grpc
             - name: OTEL_RESOURCE_ATTRIBUTES
               value: service.namespace=reacting-to-ai
+            - name: KNOWLEDGE_AGENT_URL
+              value: http://knowledge-agent.default.svc.cluster.local:8084
           resources:
             requests:
               memory: 256Mi

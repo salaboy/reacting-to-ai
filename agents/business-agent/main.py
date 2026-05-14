@@ -30,6 +30,10 @@ instrument_fastapi(app)
 REPO_URL = os.getenv("REPO_URL", "https://github.com/salaboy/reacting-to-ai.git")
 GITHUB_TOKEN = os.getenv("GITHUB_TOKEN", "")
 ANTHROPIC_MODEL = os.getenv("ANTHROPIC_MODEL", "claude-sonnet-4-5-20250929")
+KNOWLEDGE_AGENT_URL = os.getenv(
+    "KNOWLEDGE_AGENT_URL",
+    "http://knowledge-agent.default.svc.cluster.local:8084",
+)
 DEFAULT_TARGET_URL = os.getenv(
     "DEFAULT_TARGET_URL", "http://homebanking-app.default.svc.cluster.local"
 )
@@ -145,6 +149,7 @@ SYSTEM_PROMPT = (
 class EvaluateRequest(BaseModel):
     url: str
     description: str = ""
+    investigation_id: str | None = None
 
 
 class EvaluationVerdict(BaseModel):
@@ -458,6 +463,19 @@ def update_evaluation(evaluation_id: str, updates: dict):
                 break
 
 
+def push_evaluation_to_knowledge_store(evaluation: dict):
+    """Fire-and-forget push of a completed evaluation to the knowledge store."""
+    try:
+        requests.post(
+            f"{KNOWLEDGE_AGENT_URL}/index/evaluation",
+            json=evaluation,
+            timeout=10,
+        )
+        logger.info("Indexed evaluation %s in knowledge store", evaluation.get("id"))
+    except Exception as e:
+        logger.warning("Failed to index evaluation in knowledge store: %s", e)
+
+
 async def run_evaluation(evaluation_id: str, payload: EvaluateRequest):
     update_evaluation(evaluation_id, {"status": "browsing"})
 
@@ -594,6 +612,11 @@ async def run_evaluation(evaluation_id: str, payload: EvaluateRequest):
                 "completedAt": datetime.now(timezone.utc).isoformat(),
             })
 
+        with evaluations_lock:
+            ev_snapshot = next((dict(v) for v in evaluations if v["id"] == evaluation_id), None)
+        if ev_snapshot:
+            push_evaluation_to_knowledge_store(ev_snapshot)
+
     except Exception as e:
         logger.exception("Error during evaluation")
         update_evaluation(evaluation_id, {
@@ -619,6 +642,7 @@ async def evaluate_url(payload: EvaluateRequest):
         "id": evaluation_id,
         "url": payload.url,
         "description": payload.description,
+        "investigation_id": payload.investigation_id,
         "status": "pending",
         "passed": None,
         "summary": "",

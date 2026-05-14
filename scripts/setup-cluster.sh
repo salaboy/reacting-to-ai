@@ -67,6 +67,7 @@ helm repo add prometheus-community https://prometheus-community.github.io/helm-c
 helm repo add open-telemetry https://open-telemetry.github.io/opentelemetry-helm-charts 2>/dev/null || true
 helm repo add jetstack https://charts.jetstack.io --force-update
 helm repo add argo https://argoproj.github.io/argo-helm 2>/dev/null || true
+helm repo add bitnami https://charts.bitnami.com/bitnami 2>/dev/null || true
 helm repo update
 echo ""
 
@@ -232,6 +233,18 @@ echo ""
 # -------------------------------------------------------
 # 11. Deploy agents
 # -------------------------------------------------------
+# -------------------------------------------------------
+# 10c. Install PostgreSQL with pgvector for knowledge-agent
+# -------------------------------------------------------
+echo "--- Installing PostgreSQL (pgvector) for knowledge-agent ---"
+helm upgrade --install postgresql bitnami/postgresql \
+  --namespace default \
+  -f "$PROJECT_ROOT/agents/knowledge-agent/k8s/postgresql-values.yaml" \
+  --wait
+echo "PostgreSQL pods:"
+kubectl get pods -l app.kubernetes.io/name=postgresql
+echo ""
+
 echo "--- Deploying Monitor Agent ---"
 kubectl apply -f "$PROJECT_ROOT/agents/monitor-agent/k8s/"
 echo "Monitor Agent deployed."
@@ -253,6 +266,12 @@ kubectl create secret generic business-agent-secrets \
   --dry-run=client -o yaml | kubectl apply -f -
 kubectl apply -f "$PROJECT_ROOT/agents/business-agent/k8s/"
 echo "Business Agent deployed."
+echo ""
+
+echo "--- Deploying Knowledge Agent ---"
+kubectl apply -f "$PROJECT_ROOT/agents/knowledge-agent/k8s/deployment.yaml"
+kubectl apply -f "$PROJECT_ROOT/agents/knowledge-agent/k8s/service.yaml"
+echo "Knowledge Agent deployed."
 echo ""
 
 echo "--- Deploying Dashboard ---"
@@ -300,6 +319,7 @@ echo "  Application (PR <n>):   http://localhost/pr/<n>/      (per-PR preview, w
 echo "  Monitor Agent:          http://localhost/monitor/"
 echo "  Fixer Agent:            http://localhost/fixer/"
 echo "  Business Agent:         http://localhost/business/"
+echo "  Knowledge Agent:        http://localhost/knowledge/"
 echo "  Dashboard:              http://localhost/dashboard/"
 echo "  Jaeger:                 http://localhost/jaeger/ui"
 echo "  Prometheus:             http://localhost/prometheus/"

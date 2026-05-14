@@ -1,0 +1,56 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: knowledge-agent
+  labels:
+    app: knowledge-agent
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: knowledge-agent
+  template:
+    metadata:
+      labels:
+        app: knowledge-agent
+    spec:
+      containers:
+        - name: knowledge-agent
+          image: ghcr.io/salaboy/reacting-to-ai/knowledge-agent:main
+          ports:
+            - containerPort: 8084
+          env:
+            - name: KNOWLEDGE_DB_URL
+              value: postgresql://knowledge:knowledge@postgresql.default.svc.cluster.local:5432/knowledge
+            - name: JAEGER_QUERY_URL
+              value: http://jaeger-query.default.svc.cluster.local:16686
+            - name: JAEGER_ENRICHMENT_ENABLED
+              value: "false"
+            - name: HF_HOME
+              value: /data/models
+            - name: OTEL_SERVICE_NAME
+              value: knowledge-agent
+            - name: OTEL_EXPORTER_OTLP_ENDPOINT
+              value: http://otel-collector-opentelemetry-collector.opentelemetry.svc.cluster.local:4317
+            - name: OTEL_EXPORTER_OTLP_PROTOCOL
+              value: grpc
+            - name: OTEL_RESOURCE_ATTRIBUTES
+              value: service.namespace=reacting-to-ai
+          resources:
+            requests:
+              memory: 512Mi
+              cpu: 100m
+            limits:
+              memory: 1Gi
+          volumeMounts:
+            - name: model-cache
+              mountPath: /data/models
+          readinessProbe:
+            httpGet:
+              path: /health
+              port: 8084
+            initialDelaySeconds: 30
+            periodSeconds: 10
+      volumes:
+        - name: model-cache
+          emptyDir: {}

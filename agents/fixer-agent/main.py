@@ -30,6 +30,10 @@ instrument_fastapi(app)
 REPO_URL = os.getenv("REPO_URL", "https://github.com/salaboy/reacting-to-ai.git")
 GITHUB_TOKEN = os.getenv("GITHUB_TOKEN", "")
 ANTHROPIC_MODEL = os.getenv("ANTHROPIC_MODEL", "claude-sonnet-4-5-20250929")
+KNOWLEDGE_AGENT_URL = os.getenv(
+    "KNOWLEDGE_AGENT_URL",
+    "http://knowledge-agent.default.svc.cluster.local:8084",
+)
 
 SYSTEM_PROMPT = (
     "You are a code fixer agent. You receive alerts from a monitoring system "
@@ -280,6 +284,39 @@ def update_investigation(investigation_id: str, updates: dict):
                 break
 
 
+def query_knowledge_store(alert_name: str, description: str, k: int = 3) -> str:
+    """Return formatted past-cases text from the knowledge store, or '' on failure."""
+    try:
+        resp = requests.get(
+            f"{KNOWLEDGE_AGENT_URL}/query",
+            params={"text": f"{alert_name} {description}", "k": k},
+            timeout=5,
+        )
+        resp.raise_for_status()
+        results = resp.json().get("results", [])
+        if not results:
+            logger.info("Knowledge query: 0 results for alert '%s'", alert_name)
+            return ""
+        logger.info("Knowledge query: %d result(s) for alert '%s'", len(results), alert_name)
+        return "\n\n".join(r["text"] for r in results)
+    except Exception as e:
+        logger.warning("Knowledge store unavailable, continuing without RAG context: %s", e)
+        return ""
+
+
+def push_investigation_to_knowledge_store(investigation: dict):
+    """Fire-and-forget push of a completed investigation to the knowledge store."""
+    try:
+        requests.post(
+            f"{KNOWLEDGE_AGENT_URL}/index/investigation",
+            json=investigation,
+            timeout=10,
+        )
+        logger.info("Indexed investigation %s in knowledge store", investigation.get("id"))
+    except Exception as e:
+        logger.warning("Failed to index investigation in knowledge store: %s", e)
+
+
 def run_investigation(investigation_id: str, payload: FixRequest):
     update_investigation(investigation_id, {"status": "cloning"})
 
@@ -303,13 +340,23 @@ def run_investigation(investigation_id: str, payload: FixRequest):
                 )
             traces_context = "\n\nRelated error traces:\n" + "\n".join(trace_lines)
 
+        past_cases = query_knowledge_store(payload.alert_name, payload.description)
+        past_cases_context = ""
+        if past_cases:
+            trimmed = past_cases[:1500]
+            past_cases_context = (
+                "\n\nRELEVANT PAST INVESTIGATIONS (for context only — verify independently "
+                "before applying any pattern):\n\n" + trimmed
+            )
+
         user_prompt = (
             f"An alert has fired and needs investigation:\n\n"
             f"Alert name: {payload.alert_name}\n"
             f"Description: {payload.description}\n"
             f"Labels: {payload.labels}\n"
             f"Annotations: {payload.annotations}"
-            f"{traces_context}\n\n"
+            f"{traces_context}"
+            f"{past_cases_context}\n\n"
             f"Investigate the application code, find the root cause, and apply a fix."
         )
 
@@ -351,6 +398,10 @@ def run_investigation(investigation_id: str, payload: FixRequest):
                 "analysis": analysis,
                 "completedAt": datetime.now(timezone.utc).isoformat(),
             })
+            with investigations_lock:
+                inv_snapshot = next((dict(i) for i in investigations if i["id"] == investigation_id), None)
+            if inv_snapshot:
+                push_investigation_to_knowledge_store(inv_snapshot)
             return
 
         # Get the list of locally changed files and check for an existing PR
@@ -370,11 +421,18 @@ def run_investigation(investigation_id: str, payload: FixRequest):
                     "analysis": f"An open pull request already exists for this alert with the same file changes: {existing_pr_url}",
                     "completedAt": datetime.now(timezone.utc).isoformat(),
                 })
+                with investigations_lock:
+                    inv_snapshot = next((dict(i) for i in investigations if i["id"] == investigation_id), None)
+                if inv_snapshot:
+                    push_investigation_to_knowledge_store(inv_snapshot)
                 return
         except Exception as e:
             logger.warning("Failed to check for existing PRs: %s", e)
 
-        update_investigation(investigation_id, {"status": "creating_issue"})
+        update_investigation(investigation_id, {
+            "status": "creating_issue",
+            "changed_files": sorted(local_changed_files),
+        })
         issue_number, issue_url = create_issue(payload.alert_name, payload.description, analysis)
         logger.info("Issue created: #%d %s", issue_number, issue_url)
         update_investigation(investigation_id, {"issue_url": issue_url})
@@ -391,6 +449,10 @@ def run_investigation(investigation_id: str, payload: FixRequest):
             "issue_url": issue_url,
             "completedAt": datetime.now(timezone.utc).isoformat(),
         })
+        with investigations_lock:
+            inv_snapshot = next((dict(i) for i in investigations if i["id"] == investigation_id), None)
+        if inv_snapshot:
+            push_investigation_to_knowledge_store(inv_snapshot)
 
     except Exception as e:
         logger.exception("Error processing alert")
@@ -420,6 +482,7 @@ async def fix_alert(payload: FixRequest):
         "analysis": "",
         "pr_url": "",
         "issue_url": "",
+        "changed_files": [],
         "error": "",
         "createdAt": datetime.now(timezone.utc).isoformat(),
         "completedAt": "",
