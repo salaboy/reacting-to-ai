@@ -152,6 +152,10 @@ def find_existing_pr(alert_name: str, changed_files: set[str]) -> str | None:
 
     Returns the PR URL if a matching PR is found, None otherwise.
     """
+    if not GITHUB_TOKEN:
+        logger.warning("GITHUB_TOKEN not set, skipping existing PR check")
+        return None
+
     parts = REPO_URL.rstrip("/").removesuffix(".git").split("/")
     owner, repo = parts[-2], parts[-1]
     gh_headers = {
@@ -191,6 +195,9 @@ def find_existing_pr(alert_name: str, changed_files: set[str]) -> str | None:
 
 def create_issue(alert_name: str, description: str, analysis: str) -> tuple[int, str]:
     """Create a GitHub issue describing the fix. Returns (issue_number, issue_url)."""
+    if not GITHUB_TOKEN:
+        raise ValueError("GITHUB_TOKEN not set, cannot create issue")
+
     parts = REPO_URL.rstrip("/").removesuffix(".git").split("/")
     owner, repo = parts[-2], parts[-1]
 
@@ -217,6 +224,9 @@ def create_issue(alert_name: str, description: str, analysis: str) -> tuple[int,
 
 
 def create_pr(repo_dir: str, branch: str, alert_name: str, analysis: str, issue_number: int) -> str:
+    if not GITHUB_TOKEN:
+        raise ValueError("GITHUB_TOKEN not set, cannot create PR")
+
     parts = REPO_URL.rstrip("/").removesuffix(".git").split("/")
     owner, repo = parts[-2], parts[-1]
 
@@ -467,6 +477,9 @@ def run_investigation(investigation_id: str, payload: FixRequest):
 
 @app.post("/fix")
 async def fix_alert(payload: FixRequest):
+    if not GITHUB_TOKEN:
+        raise HTTPException(status_code=503, detail="GITHUB_TOKEN not configured")
+
     logger.info("Received alert: %s — %s", payload.alert_name, payload.description)
 
     investigation_id = uuid.uuid4().hex[:12]
