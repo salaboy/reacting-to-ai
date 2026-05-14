@@ -43,6 +43,19 @@ kubectl cluster-info --context "kind-${CLUSTER_NAME}"
 echo ""
 
 # -------------------------------------------------------
+# 1a. Clean up orphaned deployments
+# -------------------------------------------------------
+echo "--- Cleaning up orphaned deployments ---"
+if kubectl get deployment knowledge-agent -n default &>/dev/null; then
+  echo "Found orphaned 'knowledge-agent' deployment, deleting..."
+  kubectl delete deployment knowledge-agent -n default --ignore-not-found=true
+  echo "Orphaned deployment removed."
+else
+  echo "No orphaned deployments found."
+fi
+echo ""
+
+# -------------------------------------------------------
 # 1b. Install NGINX Ingress Controller
 # -------------------------------------------------------
 echo "--- Installing NGINX Ingress Controller ---"
