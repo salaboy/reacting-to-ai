@@ -52,10 +52,15 @@ def get_conn():
 
 
 def init_db():
-    conn = get_conn()
+    # Use a plain connection first: register_vector requires the extension to
+    # already exist, so we must create it before calling get_conn().
+    conn = psycopg2.connect(DB_URL)
     try:
         with conn.cursor() as cur:
             cur.execute("CREATE EXTENSION IF NOT EXISTS vector;")
+        conn.commit()
+        register_vector(conn)
+        with conn.cursor() as cur:
             cur.execute("""
                 CREATE TABLE IF NOT EXISTS investigations (
                     id               TEXT PRIMARY KEY,
