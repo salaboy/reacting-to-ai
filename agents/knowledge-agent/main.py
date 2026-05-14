@@ -1,6 +1,7 @@
 import json
 import logging
 import os
+import time
 from datetime import datetime, timezone
 from typing import Optional
 
@@ -215,8 +216,28 @@ def format_results_as_text(rows: list[dict]) -> str:
 
 @app.on_event("startup")
 def on_startup():
-    init_db()
-    get_model()  # warm up the embedding model
+    max_retries = 30
+    retry_delay = 2
+    
+    for attempt in range(1, max_retries + 1):
+        try:
+            logger.info("Attempting to initialize database (attempt %d/%d)", attempt, max_retries)
+            init_db()
+            logger.info("Database initialized successfully")
+            break
+        except Exception as e:
+            logger.warning("Database initialization failed (attempt %d/%d): %s", attempt, max_retries, e)
+            if attempt < max_retries:
+                time.sleep(retry_delay)
+            else:
+                logger.error("Failed to initialize database after %d attempts", max_retries)
+                raise
+    
+    try:
+        get_model()
+    except Exception as e:
+        logger.error("Failed to load embedding model: %s", e)
+        raise
 
 
 # ---------------------------------------------------------------------------
