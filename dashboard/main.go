@@ -66,7 +66,8 @@ func envOr(key, fallback string) string {
 var httpClient = &http.Client{Timeout: 5 * time.Second}
 
 func initTracer() func() {
-	ctx := context.Background()
+	ctx, cancel := context.WithTimeout(context.Background(), 2*time.Second)
+	defer cancel()
 
 	exporter, err := otlptracegrpc.New(ctx)
 	if err != nil {
