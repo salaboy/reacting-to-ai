@@ -237,12 +237,10 @@ echo ""
 # 10c. Install PostgreSQL with pgvector for knowledge-agent
 # -------------------------------------------------------
 echo "--- Installing PostgreSQL (pgvector) for knowledge-agent ---"
-helm upgrade --install postgresql bitnami/postgresql \
-  --namespace default \
-  -f "$PROJECT_ROOT/agents/knowledge-agent/k8s/postgresql-values.yaml" \
-  --wait
+kubectl apply -f "$PROJECT_ROOT/agents/knowledge-agent/k8s/postgres.yaml"
+kubectl rollout status statefulset/postgresql --timeout=120s
 echo "PostgreSQL pods:"
-kubectl get pods -l app.kubernetes.io/name=postgresql
+kubectl get pods -l app=postgresql
 echo ""
 
 echo "--- Deploying Monitor Agent ---"
