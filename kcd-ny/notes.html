@@ -1,0 +1,268 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Speaker notes — follower</title>
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<style>
+  :root {
+    --bg: #0E0E0E;
+    --panel: #161618;
+    --ink: #F5F5F5;
+    --ink-dim: #9E9E9E;
+    --ink-mute: #5A5A5A;
+    --accent: #F8494D;
+    --rule: #262629;
+  }
+  * { box-sizing: border-box; }
+  html, body { height: 100%; }
+  body {
+    margin: 0;
+    background: var(--bg);
+    color: var(--ink);
+    font-family: -apple-system, BlinkMacSystemFont, "Helvetica Neue", Helvetica, Arial, sans-serif;
+    -webkit-font-smoothing: antialiased;
+    display: grid;
+    grid-template-rows: auto 1fr auto;
+    height: 100vh;
+  }
+  header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 18px 28px;
+    border-bottom: 1px solid var(--rule);
+    font-family: ui-monospace, "Martian Mono", "JetBrains Mono", monospace;
+    font-size: 13px;
+    letter-spacing: .08em;
+    text-transform: uppercase;
+    color: var(--ink-dim);
+    gap: 24px;
+  }
+  header .pill {
+    color: var(--accent);
+    font-weight: 600;
+  }
+  header .meta { display: flex; gap: 28px; align-items: center; }
+  header button {
+    background: transparent;
+    color: var(--ink-dim);
+    border: 1px solid var(--rule);
+    border-radius: 6px;
+    padding: 6px 10px;
+    font: inherit;
+    font-size: 11px;
+    letter-spacing: .08em;
+    cursor: pointer;
+  }
+  header button:hover { color: var(--ink); border-color: #3a3a3d; }
+
+  main {
+    display: grid;
+    grid-template-rows: auto 1fr;
+    padding: 36px 56px 28px;
+    overflow: hidden;
+    min-height: 0;
+  }
+  .label {
+    font-family: ui-monospace, "Martian Mono", "JetBrains Mono", monospace;
+    font-size: 11px;
+    letter-spacing: .2em;
+    text-transform: uppercase;
+    color: var(--ink-mute);
+    margin-bottom: 14px;
+  }
+  .note {
+    font-size: clamp(22px, 2.6vw, 38px);
+    line-height: 1.4;
+    color: var(--ink);
+    overflow: auto;
+    padding-right: 12px;
+  }
+  .note em { color: var(--accent); font-style: normal; }
+
+  footer {
+    border-top: 1px solid var(--rule);
+    padding: 22px 56px 26px;
+    color: var(--ink-dim);
+    display: grid;
+    grid-template-rows: auto auto;
+    gap: 8px;
+    max-height: 30vh;
+    overflow: hidden;
+  }
+  footer .next {
+    font-size: clamp(15px, 1.4vw, 19px);
+    line-height: 1.45;
+    color: var(--ink-dim);
+    overflow: auto;
+    max-height: 18vh;
+  }
+
+  .status {
+    position: absolute;
+    bottom: 12px;
+    right: 16px;
+    font-family: ui-monospace, monospace;
+    font-size: 10px;
+    color: var(--ink-mute);
+    letter-spacing: .1em;
+    text-transform: uppercase;
+  }
+
+  .empty {
+    display: grid;
+    place-items: center;
+    height: 100%;
+    color: var(--ink-dim);
+    text-align: center;
+    padding: 0 40px;
+  }
+  .empty code { color: var(--ink); background: var(--panel); padding: 2px 6px; border-radius: 4px; }
+</style>
+</head>
+<body>
+
+<header>
+  <div class="pill" id="counter">— / —</div>
+  <div class="meta">
+    <span id="clock">--:--:--</span>
+    <span id="elapsed">00:00</span>
+    <button id="reset-btn" title="Reset elapsed timer">Reset</button>
+  </div>
+</header>
+
+<main id="main">
+  <div>
+    <div class="label">Current note</div>
+  </div>
+  <div class="note" id="note">Loading…</div>
+</main>
+
+<footer>
+  <div class="label">Next slide</div>
+  <div class="next" id="next">—</div>
+</footer>
+
+<div class="status" id="status">waiting for deck</div>
+
+<script>
+(() => {
+  const DEFAULT_DECK = 'Cloud Native Summit Munich - Beyond Supports OpenTelemetry.html';
+  const STORAGE_PREFIX = 'deck-stage:slide:';
+
+  const params = new URLSearchParams(location.search);
+  const deckFile = params.get('deck') || DEFAULT_DECK;
+
+  // Resolve the absolute pathname of the deck file (same origin) so the
+  // localStorage key matches what deck-stage.js writes from the deck window.
+  const deckURL = new URL(deckFile, location.href);
+  const storageKey = STORAGE_PREFIX + deckURL.pathname;
+
+  const $counter = document.getElementById('counter');
+  const $note    = document.getElementById('note');
+  const $next    = document.getElementById('next');
+  const $clock   = document.getElementById('clock');
+  const $elapsed = document.getElementById('elapsed');
+  const $status  = document.getElementById('status');
+  const $main    = document.getElementById('main');
+
+  let notes = [];
+  let total = 0;
+  let lastIndex = -1;
+
+  // ----- elapsed timer -----
+  let startedAt = Date.now();
+  function pad(n) { return String(n).padStart(2, '0'); }
+  function tickClock() {
+    const d = new Date();
+    $clock.textContent = `${pad(d.getHours())}:${pad(d.getMinutes())}:${pad(d.getSeconds())}`;
+    const s = Math.floor((Date.now() - startedAt) / 1000);
+    const m = Math.floor(s / 60);
+    $elapsed.textContent = `${pad(m)}:${pad(s % 60)}`;
+  }
+  setInterval(tickClock, 1000);
+  tickClock();
+  document.getElementById('reset-btn').addEventListener('click', () => {
+    startedAt = Date.now();
+    tickClock();
+  });
+
+  // ----- load notes from the deck -----
+  async function loadNotes() {
+    try {
+      const res = await fetch(deckURL.href, { cache: 'no-store' });
+      if (!res.ok) throw new Error(`HTTP ${res.status}`);
+      const html = await res.text();
+      const doc = new DOMParser().parseFromString(html, 'text/html');
+      const tag = doc.getElementById('speaker-notes');
+      if (!tag) throw new Error('no <script id="speaker-notes"> in deck');
+      notes = JSON.parse(tag.textContent || '[]');
+      // Count slides — actual <section> children of <deck-stage>
+      const sections = doc.querySelectorAll('deck-stage > section');
+      total = sections.length || notes.length;
+      $status.textContent = `loaded ${notes.length} notes · ${total} slides`;
+      render(getCurrentIndex());
+    } catch (err) {
+      $main.innerHTML = `<div class="empty">
+        <div>
+          <p>Couldn't load deck file<br><code>${deckFile}</code></p>
+          <p style="margin-top:16px;font-size:14px">
+            Serve this directory over HTTP and open the notes window via the same origin.<br>
+            From a terminal in this folder:<br>
+            <code>python3 -m http.server 8000</code>
+          </p>
+          <p style="margin-top:16px;font-size:13px;color:#666">${err.message}</p>
+        </div></div>`;
+      $status.textContent = 'load failed';
+    }
+  }
+
+  function getCurrentIndex() {
+    const raw = localStorage.getItem(storageKey);
+    const n = parseInt(raw, 10);
+    return Number.isFinite(n) ? n : 0;
+  }
+
+  function render(index) {
+    if (!notes.length) return;
+    const i = Math.max(0, Math.min(index, Math.max(notes.length, total) - 1));
+    if (i === lastIndex) return;
+    lastIndex = i;
+    const t = total || notes.length;
+    $counter.textContent = `${String(i + 1).padStart(2, '0')} / ${String(t).padStart(2, '0')}`;
+    $note.textContent = notes[i] || '(no note for this slide)';
+    $next.textContent = i + 1 < t ? (notes[i + 1] || '(no note for the next slide)') : '— end of deck —';
+    // Scroll current note back to top on slide change
+    $note.scrollTop = 0;
+    $next.scrollTop = 0;
+    $status.textContent = `live · slide ${i + 1}`;
+  }
+
+  // ----- follow the deck via storage events -----
+  window.addEventListener('storage', (e) => {
+    if (e.key !== storageKey) return;
+    const n = parseInt(e.newValue, 10);
+    if (Number.isFinite(n)) render(n);
+  });
+
+  // Fallback poll every 750ms in case storage events are flaky
+  // (some browsers throttle them, file:// can drop them entirely).
+  setInterval(() => render(getCurrentIndex()), 750);
+
+  // Keyboard convenience: r resets timer, f goes fullscreen.
+  window.addEventListener('keydown', (e) => {
+    if (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA') return;
+    if (e.key === 'r' || e.key === 'R') {
+      startedAt = Date.now(); tickClock();
+    } else if (e.key === 'f' || e.key === 'F') {
+      if (!document.fullscreenElement) document.documentElement.requestFullscreen?.();
+      else document.exitFullscreen?.();
+    }
+  });
+
+  loadNotes();
+})();
+</script>
+</body>
+</html>
