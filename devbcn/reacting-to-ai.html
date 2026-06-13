@@ -1,0 +1,905 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<script type="application/json" id="speaker-notes">
+[
+  "Opening. Developer Experience in the Age of AI. The room is full of engineers who have either tried coding agents, are about to, or are being asked to roll them out. The next 25 minutes are about what actually changes — not about which model is best.",
+  "The frame I want to plant before anything else. Software has always had two loops. The inner loop is what you do at your desk — code, build, test, debug. The outer loop is what happens with the team — review, merge, release. AI doesn't replace either; it pushes on both differently, and confusing the two is the first mistake.",
+  "The inner loop, before coding agents. Tight cycle, fast feedback, deeply personal. This is where you learn the in-and-outs of your application. Every time you debug something, you're absorbing the system into your head. That learning is load-bearing — don't lose sight of it.",
+  "The outer loop. Slower, less personal, but this is where the team actually exists as a team. PR reviews, merge conflicts, ADRs, release decisions — these are the moments collaboration happens. Compress this and you compress the thing that holds the team together.",
+  "Coding agents. What they actually are: a wrapper around an LLM with tools, memory, workflows, and guardrails. What they actually do: they automate the inner loop in a generic way. They don't know your system; they just execute the loop faster.",
+  "So what changed? Three things, all uncomfortable. First, requirements now have to be expressed as prompts — that's a new craft. Second, the agent automates the coder but not the engineer — the judgment doesn't transfer. Third, my inner loop is gone; most of my time is now reviewing what was generated. I'm not learning the system the same way anymore.",
+  "Parallel inner loops, and the leap of faith. Yes, I can run four agents in parallel — that's real leverage. But the leap is vibe coding: accepting what the agent produced because it looked right. That's the bash prompt that asks 'yes / yes and don't ask again / no.' Option 2 is the gambling addiction. Be honest about which one you've been picking.",
+  "How do we make this work. Three levers. Prompt engineering so the agent does what you actually meant. MCP and skills so it integrates with your org's systems instead of inventing in a vacuum. Conventions — the boring kind — so its output looks like the rest of your codebase. None of these are optional.",
+  "Demos. Five of them, each pressing on a different part of the loop. Building blocks for your own agents, YOLO mode, pair programming, measurement, intent-to-code. We'll move quickly — the goal is to show the shape, not finish anything.",
+  "Zooming out. The outer loop doesn't go away just because the inner loop got automated. In fact, with multiple agents in flight, the outer loop gets harder — you're now coordinating distributed multi-agent systems, not just people. That's the next problem.",
+  "Five levels of agentic engineering. L1 assisted — you drive. L2 augmented — you review every diff. L3 spec-centric — agents lean on specs, you validate intent. L4 selective autonomy — earned, per service. L5 full autonomy — agents ship, you intervene. You cannot skip levels. Most teams are at L2 and convinced they're done.",
+  "Two plays, two places to invest. Inner-loop play: intent validation — did the agent build what you actually asked for? Specs, contracts, evals — not just diff review. Outer-loop play: platform engineering — standardize the new inner loops, pave the road for agents the way you paved it for humans.",
+  "Who's winning. Developers winning are the ones who redesigned their inner loop with the same rigor they'd apply to any system — that takes seniority. Companies winning are the ones that standardized the new inner loops and solved the outer-loop collaboration. I haven't seen many of the second kind yet.",
+  "Thanks. Catch me after — happy to talk about how any of this lands in your specific stack."
+]
+</script>
+<title>Developer Experience in the Age of AI — DevBCN 2026</title>
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500;600;700;900&family=Martian+Mono:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="deck.css">
+<script src="deck-stage.js"></script>
+<style>
+  @keyframes climb-in { from { opacity: 0; transform: translateY(28px) scale(.96); } to { opacity: 1; transform: translateY(0) scale(1); } }
+  @keyframes climb-arrow-in { from { opacity: 0; transform: translateX(-12px); } to { opacity: 1; transform: translateX(0); } }
+  .climb-box, .climb-arrow { opacity: 0; }
+  .climb-box.revealed { animation: climb-in .55s cubic-bezier(.2,.7,.2,1) forwards; animation-delay: 0s; }
+  .climb-arrow.revealed { animation: climb-arrow-in .4s ease-out forwards; animation-delay: 0s; }
+  .slide-foot { bottom: 72px; font-size: 20px; letter-spacing: .1em; color: var(--ink-300); }
+  .dark .slide-foot { color: var(--ink-300); }
+  .level-row > * { opacity: 0; transition: opacity 320ms ease; }
+  .level-row.show-label > *:nth-child(1),
+  .level-row.show-label > *:nth-child(2) { opacity: 1; }
+  .level-row.show-desc > *:nth-child(3) { opacity: 1; }
+
+  /* Reusable bits for this deck */
+  .loop-arrow { font-size: 96px; color: var(--orange-400); line-height: 1; }
+  .formula-step {
+    font-family: var(--mono); font-size: 56px; font-weight: 600;
+    color: #fff; letter-spacing: -.01em;
+    padding: 24px 36px; border-radius: 20px;
+    background: linear-gradient(155deg, rgba(248,73,77,.16) 0%, rgba(248,73,77,.02) 100%);
+    border: 2px solid var(--red-500);
+    box-shadow: 0 0 36px rgba(248,73,77,.18);
+  }
+  .formula-step.warm { border-color: #FFC870; background: linear-gradient(155deg, rgba(255,200,112,.16) 0%, rgba(255,200,112,.02) 100%); box-shadow: 0 0 36px rgba(255,200,112,.18); }
+  .formula-step.peach { border-color: var(--orange-400); background: linear-gradient(155deg, rgba(253,140,102,.16) 0%, rgba(253,140,102,.02) 100%); box-shadow: 0 0 36px rgba(253,140,102,.18); }
+  .formula-step.purple { border-color: var(--purple-500); background: linear-gradient(155deg, rgba(144,120,243,.16) 0%, rgba(144,120,243,.02) 100%); box-shadow: 0 0 36px rgba(144,120,243,.22); }
+  .thought {
+    border: 1.5px dashed var(--ink-600); border-radius: 18px;
+    padding: 22px 26px; background: rgba(255,255,255,.025);
+    color: var(--ink-200); font-size: 22px; line-height: 1.45;
+    max-width: 340px;
+  }
+  .agent-card {
+    padding: 22px 18px; border-radius: 14px;
+    border: 1.5px solid var(--orange-400);
+    background: linear-gradient(155deg, rgba(253,140,102,.14) 0%, rgba(253,140,102,.02) 100%);
+    color: #fff; font-weight: 600; font-size: 26px; text-align: center;
+  }
+</style>
+</head>
+<body>
+
+<deck-stage width="1920" height="1080">
+
+<!-- ============================================================
+     01 · TITLE — Developer Experience in the Age of AI
+============================================================ -->
+<section class="dark" data-label="Title">
+  <div class="sunburst-bg">
+    <svg viewBox="0 0 1920 1080" preserveAspectRatio="none" aria-hidden="true">
+      <defs>
+        <linearGradient id="ray-title" x1="0" x2="1" y1=".5" y2=".5">
+          <stop offset="0"   stop-color="#F8494D" stop-opacity="0"/>
+          <stop offset=".15" stop-color="#F8494D" stop-opacity="0"/>
+          <stop offset=".45" stop-color="#F8494D" stop-opacity=".65"/>
+          <stop offset=".85" stop-color="#FFC870" stop-opacity=".95"/>
+          <stop offset="1"   stop-color="#FFC870" stop-opacity="0"/>
+        </linearGradient>
+        <radialGradient id="vign-title" cx=".25" cy=".55" r=".75">
+          <stop offset="0"   stop-color="#121212" stop-opacity=".85"/>
+          <stop offset=".55" stop-color="#121212" stop-opacity=".5"/>
+          <stop offset="1"   stop-color="#121212" stop-opacity="0"/>
+        </radialGradient>
+      </defs>
+      <g stroke="url(#ray-title)" stroke-linecap="round" fill="none">
+        <line x1="2400" y1="540" x2="-200" y2="-1260" stroke-width="2"/>
+        <line x1="2400" y1="540" x2="-320" y2="-860"  stroke-width="1.5"/>
+        <line x1="2400" y1="540" x2="-500" y2="-540"  stroke-width="2.5"/>
+        <line x1="2400" y1="540" x2="-650" y2="-200"  stroke-width="1.5"/>
+        <line x1="2400" y1="540" x2="-760" y2="180"   stroke-width="3"/>
+        <line x1="2400" y1="540" x2="-800" y2="540"   stroke-width="2"/>
+        <line x1="2400" y1="540" x2="-760" y2="900"   stroke-width="3"/>
+        <line x1="2400" y1="540" x2="-650" y2="1280"  stroke-width="1.5"/>
+        <line x1="2400" y1="540" x2="-500" y2="1620"  stroke-width="2.5"/>
+        <line x1="2400" y1="540" x2="-320" y2="1940"  stroke-width="1.5"/>
+        <line x1="2400" y1="540" x2="-200" y2="2340"  stroke-width="2"/>
+      </g>
+      <rect width="1920" height="1080" fill="url(#vign-title)"/>
+    </svg>
+  </div>
+
+  <div class="slide-frame">
+    <div class="brand"><img src="assets/brand/dash0-logo-2026-color.png" alt="Dash0"></div>
+    <span class="deck-tag white">DevBCN 2026</span>
+  </div>
+
+  <div style="position:relative;z-index:3;margin-top:220px;max-width:1620px">
+    <p class="kicker" style="color:#FFC870">// A talk about loops, agents, and what actually changes</p>
+    <h1 class="display" style="color:#fff;font-size:148px;line-height:.95;letter-spacing:-.028em;margin-top:32px">
+      Developer <em>Experience</em><br>
+      in the Age of <em>AI</em>.
+    </h1>
+  </div>
+
+  <div style="position:absolute;left:120px;bottom:140px;z-index:3;display:flex;align-items:center;gap:24px">
+    <div style="width:80px;height:80px;border-radius:50%;background:#F8494D url('Salaboy.jpeg') center/cover no-repeat;flex:none"></div>
+    <div>
+      <div style="font-size:30px;font-weight:600;color:#fff;letter-spacing:-.005em">Mauricio Salatino · @salaboy</div>
+      <div class="t-mono" style="font-size:14px;letter-spacing:.16em;color:#FCB6B8;text-transform:uppercase;margin-top:6px">Ecosystem Engineer · Dash0.com</div>
+    </div>
+  </div>
+
+  <div class="slide-foot"><span></span><span class="num">01 / 14</span></div>
+</section>
+
+
+<!-- ============================================================
+     02 · THE TWO LOOPS — Inner → Outer, the framing
+============================================================ -->
+<section class="dark" data-label="Two loops">
+  <div class="slide-frame">
+    <div class="brand"><img src="assets/brand/dash0-logo-2026-color.png" alt="Dash0"></div>
+    <span class="deck-tag white">The frame for the next 25 minutes</span>
+  </div>
+
+  <div style="margin-top:80px;max-width:1700px">
+    <p class="kicker" style="color:var(--orange-400)">// Software has always had two loops</p>
+    <h2 class="display" style="color:#fff;font-size:132px;line-height:.98;letter-spacing:-.025em;margin-top:24px">
+      Inner Loop <em>→</em> Outer Loop.
+    </h2>
+  </div>
+
+  <div style="display:flex;justify-content:space-around;align-items:stretch;gap:56px;margin-top:96px;max-width:1700px">
+
+    <div class="card dark" style="flex:1;padding:48px 40px;display:flex;flex-direction:column;gap:18px;border-color:#FFC870">
+      <p class="card-tag" style="color:#FFC870">Inner</p>
+      <h3 style="color:#fff;font-size:64px;line-height:1;letter-spacing:-.02em;margin:0">Developer-centric.</h3>
+      <p style="color:var(--ink-200);font-size:28px;line-height:1.4;margin-top:8px">What you do at your desk. Tight cycle, fast feedback, deeply personal.</p>
+    </div>
+
+    <div class="card dark" style="flex:1;padding:48px 40px;display:flex;flex-direction:column;gap:18px;border-color:var(--red-500)">
+      <p class="card-tag" style="color:var(--red-400)">Outer</p>
+      <h3 style="color:#fff;font-size:64px;line-height:1;letter-spacing:-.02em;margin:0">Team collaboration.</h3>
+      <p style="color:var(--ink-200);font-size:28px;line-height:1.4;margin-top:8px">What happens with the team. Slower, less personal, where the team becomes a team.</p>
+    </div>
+
+  </div>
+
+  <div class="slide-foot">
+    <span>Developer Experience in the Age of AI · DevBCN 2026 · @salaboy</span>
+    <span class="num">02 / 14</span>
+  </div>
+</section>
+
+
+<!-- ============================================================
+     03 · THE INNER LOOP (before coding agents)
+============================================================ -->
+<section class="dark" data-label="Inner loop">
+  <div class="slide-frame">
+    <div class="brand"><img src="assets/brand/dash0-logo-2026-color.png" alt="Dash0"></div>
+    <span class="deck-tag white">Before coding agents</span>
+  </div>
+
+  <div style="margin-top:80px;max-width:1700px">
+    <p class="kicker" style="color:#FFC870">// What you used to do at your desk</p>
+    <h2 class="t-h1" style="color:#fff;margin-top:18px">The <em>Inner Loop</em>.</h2>
+  </div>
+
+  <div style="display:flex;align-items:center;justify-content:center;gap:32px;margin-top:96px;flex-wrap:wrap">
+    <div class="formula-step warm">code</div>
+    <div class="loop-arrow" style="color:#FFC870">→</div>
+    <div class="formula-step warm">build</div>
+    <div class="loop-arrow" style="color:#FFC870">→</div>
+    <div class="formula-step warm">test</div>
+    <div class="loop-arrow" style="color:#FFC870">→</div>
+    <div class="formula-step warm">debug</div>
+  </div>
+
+  <div style="display:flex;justify-content:flex-end;margin-top:96px;max-width:1700px">
+    <div class="thought" style="max-width:520px">
+      <p style="margin:0;font-size:24px;color:#fff;font-weight:600">This is where you learned the system.</p>
+      <p style="margin:10px 0 0;font-size:20px;color:var(--ink-200)">Every debug session absorbs the in-and-outs of your application into your head. That learning is load-bearing.</p>
+    </div>
+  </div>
+
+  <div class="slide-foot">
+    <span>Developer Experience in the Age of AI · DevBCN 2026 · @salaboy</span>
+    <span class="num">03 / 14</span>
+  </div>
+</section>
+
+
+<!-- ============================================================
+     04 · THE OUTER LOOP
+============================================================ -->
+<section class="dark" data-label="Outer loop">
+  <div class="slide-frame">
+    <div class="brand"><img src="assets/brand/dash0-logo-2026-color.png" alt="Dash0"></div>
+    <span class="deck-tag white">Where the team becomes a team</span>
+  </div>
+
+  <div style="margin-top:80px;max-width:1700px">
+    <p class="kicker" style="color:var(--red-400)">// What happens after you push</p>
+    <h2 class="t-h1" style="color:#fff;margin-top:18px">The <em>Outer Loop</em>.</h2>
+  </div>
+
+  <div style="display:flex;align-items:center;justify-content:center;gap:32px;margin-top:96px;flex-wrap:wrap">
+    <div class="formula-step">Review PR</div>
+    <div class="loop-arrow">→</div>
+    <div class="formula-step">Merge to codebase</div>
+    <div class="loop-arrow">→</div>
+    <div class="formula-step">Release</div>
+  </div>
+
+  <div style="display:flex;justify-content:flex-end;margin-top:96px;max-width:1700px">
+    <div class="thought" style="max-width:560px">
+      <p style="margin:0;font-size:24px;color:#fff;font-weight:600">Collaboration lives here.</p>
+      <p style="margin:10px 0 0;font-size:20px;color:var(--ink-200)">Merge conflicts, team decisions, ADRs. Compress this and you compress the thing that holds the team together.</p>
+    </div>
+  </div>
+
+  <div class="slide-foot">
+    <span>Developer Experience in the Age of AI · DevBCN 2026 · @salaboy</span>
+    <span class="num">04 / 14</span>
+  </div>
+</section>
+
+
+<!-- ============================================================
+     05 · CODING AGENTS — the anatomy + what they automate
+============================================================ -->
+<section class="dark" data-label="Coding agents">
+  <div class="slide-frame">
+    <div class="brand"><img src="assets/brand/dash0-logo-2026-color.png" alt="Dash0"></div>
+    <span class="deck-tag white">What they actually are</span>
+  </div>
+
+  <div style="margin-top:64px;max-width:1700px">
+    <p class="kicker" style="color:var(--orange-400)">// Automating the inner loop</p>
+    <h2 class="t-h1" style="color:#fff;margin-top:18px">Coding <em>Agents</em>.</h2>
+  </div>
+
+  <div style="display:grid;grid-template-columns:1.1fr .9fr;gap:72px;align-items:center;margin-top:56px;max-width:1700px">
+
+    <!-- Anatomy diagram -->
+    <div>
+      <div style="padding:36px;border-radius:24px;border:2px solid var(--orange-400);background:linear-gradient(155deg,rgba(253,140,102,.10) 0%,rgba(253,140,102,.02) 100%);box-shadow:0 0 48px rgba(253,140,102,.18)">
+        <div class="t-mono" style="font-size:14px;letter-spacing:.22em;color:var(--orange-400);text-transform:uppercase;font-weight:700;margin-bottom:22px">Coding Agent</div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:18px">
+          <div class="agent-card">Tools</div>
+          <div class="agent-card">Memory</div>
+          <div class="agent-card">Workflows</div>
+          <div class="agent-card">Guardrails</div>
+        </div>
+      </div>
+
+      <div style="display:flex;justify-content:center;margin:24px 0;font-size:48px;color:var(--ink-400)">↓</div>
+
+      <div style="padding:24px 36px;border-radius:18px;background:linear-gradient(155deg,rgba(144,120,243,.20) 0%,rgba(144,120,243,.04) 100%);border:2px solid var(--purple-500);color:#fff;font-weight:600;font-size:30px;text-align:center;box-shadow:0 0 36px rgba(144,120,243,.25)">
+        Large Language Model
+      </div>
+    </div>
+
+    <!-- Commentary -->
+    <div style="display:flex;flex-direction:column;gap:28px">
+      <div class="thought" style="max-width:none">
+        <p style="margin:0;font-size:24px;color:#fff;font-weight:600">It automates the inner loop in a generic way.</p>
+        <p style="margin:10px 0 0;font-size:20px;color:var(--ink-200)">A wrapper around an LLM that executes <span style="color:#fff">code → build → test → debug</span> for you. Faster, but generic — it doesn't know your system.</p>
+      </div>
+      <div class="thought" style="max-width:none">
+        <p style="margin:0;font-size:20px;color:var(--ink-200)">Same shape across every vendor: Claude Code, Cursor, Aider, Devin, OpenCode, langchain4j. The plumbing differs; the loop is the same.</p>
+      </div>
+    </div>
+
+  </div>
+
+  <div class="slide-foot">
+    <span>Developer Experience in the Age of AI · DevBCN 2026 · @salaboy</span>
+    <span class="num">05 / 14</span>
+  </div>
+</section>
+
+
+<!-- ============================================================
+     06 · SO WHAT CHANGED? — sunburst question + the three uncomfortable truths
+============================================================ -->
+<section class="dark" data-label="So what changed">
+  <div class="sunburst-bg">
+    <svg viewBox="0 0 1920 1080" preserveAspectRatio="none" aria-hidden="true">
+      <defs>
+        <linearGradient id="ray-changed" x1="0" x2="1" y1=".5" y2=".5">
+          <stop offset="0"   stop-color="#F8494D" stop-opacity="0"/>
+          <stop offset=".15" stop-color="#F8494D" stop-opacity="0"/>
+          <stop offset=".45" stop-color="#F8494D" stop-opacity=".55"/>
+          <stop offset=".85" stop-color="#FFC870" stop-opacity=".85"/>
+          <stop offset="1"   stop-color="#FFC870" stop-opacity="0"/>
+        </linearGradient>
+        <radialGradient id="vign-changed" cx=".25" cy=".55" r=".75">
+          <stop offset="0"   stop-color="#121212" stop-opacity=".85"/>
+          <stop offset=".55" stop-color="#121212" stop-opacity=".5"/>
+          <stop offset="1"   stop-color="#121212" stop-opacity="0"/>
+        </radialGradient>
+      </defs>
+      <g stroke="url(#ray-changed)" stroke-linecap="round" fill="none">
+        <line x1="2400" y1="540" x2="-200" y2="-1260" stroke-width="2"/>
+        <line x1="2400" y1="540" x2="-320" y2="-860"  stroke-width="1.5"/>
+        <line x1="2400" y1="540" x2="-500" y2="-540"  stroke-width="2.5"/>
+        <line x1="2400" y1="540" x2="-650" y2="-200"  stroke-width="1.5"/>
+        <line x1="2400" y1="540" x2="-760" y2="180"   stroke-width="3"/>
+        <line x1="2400" y1="540" x2="-800" y2="540"   stroke-width="2"/>
+        <line x1="2400" y1="540" x2="-760" y2="900"   stroke-width="3"/>
+        <line x1="2400" y1="540" x2="-650" y2="1280"  stroke-width="1.5"/>
+        <line x1="2400" y1="540" x2="-500" y2="1620"  stroke-width="2.5"/>
+        <line x1="2400" y1="540" x2="-320" y2="1940"  stroke-width="1.5"/>
+        <line x1="2400" y1="540" x2="-200" y2="2340"  stroke-width="2"/>
+      </g>
+      <rect width="1920" height="1080" fill="url(#vign-changed)"/>
+    </svg>
+  </div>
+
+  <div class="slide-frame">
+    <div class="brand"><img src="assets/brand/dash0-logo-2026-color.png" alt="Dash0"></div>
+    <span class="deck-tag white">The uncomfortable part</span>
+  </div>
+
+  <div style="position:relative;z-index:3;margin-top:160px;max-width:1700px">
+    <p class="kicker" style="color:#FFC870">// So…</p>
+    <h2 class="display" style="color:#fff;font-size:128px;line-height:.95;letter-spacing:-.025em;margin-top:24px">
+      What <em>changed</em>?
+    </h2>
+  </div>
+
+  <div style="position:relative;z-index:3;display:flex;align-items:center;justify-content:center;gap:28px;margin-top:64px;flex-wrap:wrap">
+    <div class="formula-step peach">prompt</div>
+    <div class="loop-arrow" style="color:var(--orange-400)">→</div>
+    <div class="formula-step peach">coding agent</div>
+    <div class="loop-arrow" style="color:var(--orange-400)">→</div>
+    <div class="formula-step peach">code</div>
+  </div>
+
+  <div style="position:relative;z-index:3;display:grid;grid-template-columns:repeat(3,1fr);gap:32px;margin-top:72px;max-width:1700px">
+
+    <div class="card dark" style="padding:32px 28px;border-color:var(--orange-400)">
+      <p class="card-tag" style="color:var(--orange-400)">01</p>
+      <h4 style="color:#fff">Requirements <em style="color:var(--orange-400);font-style:normal">become prompts</em>.</h4>
+      <p>A new craft — and most of us are bad at it.</p>
+    </div>
+
+    <div class="card dark" style="padding:32px 28px;border-color:#FFC870">
+      <p class="card-tag" style="color:#FFC870">02</p>
+      <h4 style="color:#fff">It automates the coder, <em style="color:#FFC870;font-style:normal">not the engineer</em>.</h4>
+      <p>The keystrokes scale; the judgment doesn't.</p>
+    </div>
+
+    <div class="card dark" style="padding:32px 28px;border-color:var(--red-500)">
+      <p class="card-tag" style="color:var(--red-400)">03</p>
+      <h4 style="color:#fff">Most of my time is now <em style="color:var(--red-400);font-style:normal">reviewing output</em>.</h4>
+      <p>The inner loop that taught me the system — gone.</p>
+    </div>
+
+  </div>
+
+  <div class="slide-foot">
+    <span>Developer Experience in the Age of AI · DevBCN 2026 · @salaboy</span>
+    <span class="num">06 / 14</span>
+  </div>
+</section>
+
+
+<!-- ============================================================
+     07 · PARALLEL LOOPS + THE LEAP OF FAITH (vibe coding)
+============================================================ -->
+<section class="dark" data-label="Leap of faith">
+  <div class="slide-frame">
+    <div class="brand"><img src="assets/brand/dash0-logo-2026-color.png" alt="Dash0"></div>
+    <span class="deck-tag white">The honest part</span>
+  </div>
+
+  <div style="margin-top:64px;max-width:1700px">
+    <p class="kicker" style="color:var(--purple-400)">// The good news, and the gambling addiction</p>
+    <h2 class="t-h1" style="color:#fff;margin-top:18px">Parallel loops &mdash; and a <em>leap of faith</em>.</h2>
+  </div>
+
+  <div style="display:grid;grid-template-columns:1fr 1fr;gap:48px;margin-top:56px;max-width:1700px">
+
+    <!-- Parallel inner loops -->
+    <div class="card dark" style="padding:40px;border-color:var(--purple-500);display:flex;flex-direction:column;gap:18px">
+      <p class="card-tag" style="color:var(--purple-400)">Real leverage</p>
+      <h3 style="color:#fff;font-size:48px;line-height:1.05;letter-spacing:-.02em;margin:0">Multiple parallel<br>inner loops.</h3>
+      <div style="display:grid;grid-template-columns:repeat(2,1fr);gap:10px;margin-top:12px">
+        <div class="t-mono" style="font-size:18px;background:rgba(144,120,243,.10);border:1px solid var(--purple-500);border-radius:10px;padding:14px 16px;color:#fff">agent-1 · feat/auth</div>
+        <div class="t-mono" style="font-size:18px;background:rgba(144,120,243,.10);border:1px solid var(--purple-500);border-radius:10px;padding:14px 16px;color:#fff">agent-2 · fix/db</div>
+        <div class="t-mono" style="font-size:18px;background:rgba(144,120,243,.10);border:1px solid var(--purple-500);border-radius:10px;padding:14px 16px;color:#fff">agent-3 · refactor</div>
+        <div class="t-mono" style="font-size:18px;background:rgba(144,120,243,.10);border:1px solid var(--purple-500);border-radius:10px;padding:14px 16px;color:#fff">agent-4 · docs</div>
+      </div>
+      <p style="color:var(--ink-200);font-size:22px;line-height:1.45;margin:6px 0 0">Four cycles running while you think. That's real.</p>
+    </div>
+
+    <!-- The leap of faith - YOLO prompt -->
+    <div class="card dark" style="padding:40px;border-color:var(--red-500);display:flex;flex-direction:column;gap:18px">
+      <p class="card-tag" style="color:var(--red-400)">The leap of faith</p>
+      <h3 style="color:#fff;font-size:48px;line-height:1.05;letter-spacing:-.02em;margin:0">Vibe coding.</h3>
+
+      <div style="background:#0E0E0E;border:1px solid var(--ink-700);border-radius:14px;padding:24px 28px;font-family:var(--mono);font-size:19px;color:#E8E8E8;line-height:1.55;margin-top:8px">
+        <div style="color:#62B8FF;font-weight:600">Bash command</div>
+        <div style="color:#E8E8E8;margin-top:6px"><span style="color:#A88BFF">python3</span> -m venv /tmp/imgvenv && pip install Pillow</div>
+        <div style="color:var(--ink-400);margin-top:14px">Do you want to proceed?</div>
+        <div style="color:#E8E8E8">&nbsp;&nbsp;1. Yes</div>
+        <div style="color:#62B8FF">&rsaquo; 2. Yes, and don't ask again for: python3:*</div>
+        <div style="color:#E8E8E8">&nbsp;&nbsp;3. No</div>
+      </div>
+
+      <p style="color:var(--ink-200);font-size:22px;line-height:1.45;margin:6px 0 0">Option 2 is the gambling addiction. Be honest about which one you've been picking.</p>
+    </div>
+
+  </div>
+
+  <div class="slide-foot">
+    <span>Developer Experience in the Age of AI · DevBCN 2026 · @salaboy</span>
+    <span class="num">07 / 14</span>
+  </div>
+</section>
+
+
+<!-- ============================================================
+     08 · MAKE CODING AGENTS EFFICIENT — three levers
+============================================================ -->
+<section class="dark" data-label="Make efficient">
+  <div class="slide-frame">
+    <div class="brand"><img src="assets/brand/dash0-logo-2026-color.png" alt="Dash0"></div>
+    <span class="deck-tag">Three levers</span>
+  </div>
+
+  <div style="margin-top:64px;max-width:1700px">
+    <p class="kicker" style="color:var(--orange-400)">// How do we make coding agents actually work?</p>
+    <h2 class="t-h1" style="color:#fff;margin-top:18px">Make them <em>efficient</em>.</h2>
+  </div>
+
+  <div class="grid g-3" style="margin-top:56px;max-width:1700px">
+
+    <!-- Prompt engineering -->
+    <div class="card dark" style="padding:0;overflow:hidden;display:flex;flex-direction:column">
+      <div style="height:200px;background:radial-gradient(circle at 50% 50%, rgba(248,73,77,.18) 0%, rgba(248,73,77,0) 70%);display:flex;align-items:center;justify-content:center;border-bottom:1px solid var(--ink-800)">
+        <span style="font-size:96px;line-height:1">✍️</span>
+      </div>
+      <div style="padding:32px">
+        <p class="card-tag">01 · Lever</p>
+        <h4>Prompt engineering</h4>
+        <p>So it actually does what you want it to do.</p>
+      </div>
+    </div>
+
+    <!-- MCP / Skills -->
+    <div class="card dark" style="padding:0;overflow:hidden;display:flex;flex-direction:column">
+      <div style="height:200px;background:radial-gradient(circle at 50% 50%, rgba(253,111,64,.22) 0%, rgba(253,111,64,0) 70%);display:flex;align-items:center;justify-content:center;border-bottom:1px solid var(--ink-800)">
+        <span style="font-size:96px;line-height:1">🔌</span>
+      </div>
+      <div style="padding:32px">
+        <p class="card-tag" style="color:var(--orange-500)">02 · Lever</p>
+        <h4>MCP &amp; skills</h4>
+        <p>So it integrates with your organization's systems.</p>
+      </div>
+    </div>
+
+    <!-- Conventions -->
+    <div class="card dark" style="padding:0;overflow:hidden;display:flex;flex-direction:column">
+      <div style="height:200px;background:radial-gradient(circle at 50% 50%, rgba(144,120,243,.20) 0%, rgba(144,120,243,0) 70%);display:flex;align-items:center;justify-content:center;border-bottom:1px solid var(--ink-800)">
+        <span style="font-size:96px;line-height:1">📐</span>
+      </div>
+      <div style="padding:32px">
+        <p class="card-tag" style="color:var(--purple-500)">03 · Lever</p>
+        <h4>Conventions</h4>
+        <p>So its output looks like the rest of your codebase.</p>
+      </div>
+    </div>
+
+  </div>
+
+  <div class="slide-foot">
+    <span>Developer Experience in the Age of AI · DevBCN 2026 · @salaboy</span>
+    <span class="num">08 / 14</span>
+  </div>
+</section>
+
+
+<!-- ============================================================
+     09 · DEMOS — five quick stops on the inner loop
+============================================================ -->
+<section class="dark" data-label="Demos">
+  <div class="slide-frame">
+    <div class="brand"><img src="assets/brand/dash0-logo-2026-color.png" alt="Dash0"></div>
+    <span class="deck-tag">Let's be practical</span>
+  </div>
+
+  <div style="margin-top:64px;max-width:1700px">
+    <p class="kicker" style="color:#FFC870">// Five stops, mostly on the inner loop</p>
+    <h2 class="t-h1" style="color:#fff;margin-top:18px">Demos.</h2>
+  </div>
+
+  <div class="grid g-3" style="margin-top:64px;max-width:1700px">
+
+    <div class="card dark" style="padding:40px 32px;border-color:var(--orange-400);display:flex;flex-direction:column;gap:18px;min-height:380px">
+      <div class="t-mono" style="font-size:15px;letter-spacing:.22em;color:var(--orange-400);text-transform:uppercase;font-weight:700">Demo 1</div>
+      <h4 style="font-size:40px;color:#fff;line-height:1.15;margin:0">Building blocks for your own agents.</h4>
+      <p style="font-size:22px;color:var(--ink-200);margin-top:auto;line-height:1.45">Tools, memory, workflows, guardrails.</p>
+    </div>
+
+    <div class="card dark" style="padding:40px 32px;border-color:#FFC870;display:flex;flex-direction:column;gap:18px;min-height:380px">
+      <div class="t-mono" style="font-size:15px;letter-spacing:.22em;color:#FFC870;text-transform:uppercase;font-weight:700">Demo 2</div>
+      <h4 style="font-size:40px;color:#fff;line-height:1.15;margin:0">YOLO mode.</h4>
+      <p style="font-size:22px;color:var(--ink-200);margin-top:auto;line-height:1.45">"Yes, and don't ask again." What could go wrong?</p>
+    </div>
+
+    <div class="card dark" style="padding:40px 32px;border-color:var(--red-500);display:flex;flex-direction:column;gap:18px;min-height:380px">
+      <div class="t-mono" style="font-size:15px;letter-spacing:.22em;color:var(--red-400);text-transform:uppercase;font-weight:700">Demo 3</div>
+      <h4 style="font-size:40px;color:#fff;line-height:1.15;margin:0">Pair programming &amp; collaboration.</h4>
+      <p style="font-size:22px;color:var(--ink-200);margin-top:auto;line-height:1.45">Agents and humans on the same diff.</p>
+    </div>
+
+  </div>
+
+  <div class="slide-foot">
+    <span>Developer Experience in the Age of AI · DevBCN 2026 · @salaboy</span>
+    <span class="num">09 / 14</span>
+  </div>
+</section>
+
+
+<!-- ============================================================
+     10 · MULTI-AGENT OUTER LOOP — there's never just one agent
+============================================================ -->
+<section class="dark" data-label="Multi-agent">
+  <div class="slide-frame">
+    <div class="brand"><img src="assets/brand/dash0-logo-2026-color.png" alt="Dash0"></div>
+    <span class="deck-tag white">Zoom out</span>
+  </div>
+
+  <div style="margin-top:120px;max-width:1700px">
+    <p class="kicker" style="color:var(--red-400)">// The outer loop didn't go away</p>
+    <h2 class="display" style="color:#fff;font-size:118px;line-height:.98;letter-spacing:-.025em;margin-top:24px">
+      There is never just <em>one agent</em>.
+    </h2>
+    <p class="t-lead" style="color:var(--ink-200);font-size:34px;margin-top:36px;max-width:46ch">
+      Now you're coordinating a <em style="color:#fff;font-style:normal">distributed multi-agent system</em> &mdash; not just a team.
+    </p>
+  </div>
+
+  <!-- Decorative multi-agent graph -->
+  <div style="position:absolute;right:120px;top:240px;width:520px;height:520px;opacity:.85">
+    <svg viewBox="0 0 520 520" aria-hidden="true">
+      <defs>
+        <linearGradient id="ma-grad" x1="0" y1="0" x2="1" y2="1">
+          <stop offset="0%" stop-color="#F8494D"/>
+          <stop offset="100%" stop-color="#9078F3"/>
+        </linearGradient>
+        <radialGradient id="ma-glow" cx=".5" cy=".5" r=".5">
+          <stop offset="0%" stop-color="#F8494D" stop-opacity=".35"/>
+          <stop offset="100%" stop-color="#F8494D" stop-opacity="0"/>
+        </radialGradient>
+      </defs>
+      <circle cx="260" cy="260" r="220" fill="url(#ma-glow)"/>
+      <g stroke="url(#ma-grad)" stroke-width="1.5" stroke-opacity=".55" fill="none">
+        <line x1="260" y1="260" x2="80"  y2="80"/>
+        <line x1="260" y1="260" x2="440" y2="80"/>
+        <line x1="260" y1="260" x2="80"  y2="440"/>
+        <line x1="260" y1="260" x2="440" y2="440"/>
+        <line x1="260" y1="260" x2="260" y2="40"/>
+        <line x1="260" y1="260" x2="260" y2="480"/>
+        <line x1="260" y1="260" x2="40"  y2="260"/>
+        <line x1="260" y1="260" x2="480" y2="260"/>
+        <line x1="80"  y1="80"  x2="440" y2="80"/>
+        <line x1="80"  y1="440" x2="440" y2="440"/>
+        <line x1="80"  y1="80"  x2="80"  y2="440"/>
+        <line x1="440" y1="80"  x2="440" y2="440"/>
+      </g>
+      <g fill="url(#ma-grad)">
+        <circle cx="80"  cy="80"  r="14"/>
+        <circle cx="440" cy="80"  r="14"/>
+        <circle cx="80"  cy="440" r="14"/>
+        <circle cx="440" cy="440" r="14"/>
+        <circle cx="260" cy="40"  r="11"/>
+        <circle cx="260" cy="480" r="11"/>
+        <circle cx="40"  cy="260" r="11"/>
+        <circle cx="480" cy="260" r="11"/>
+      </g>
+      <circle cx="260" cy="260" r="32" fill="url(#ma-grad)"/>
+      <circle cx="260" cy="260" r="32" fill="none" stroke="#fff" stroke-opacity=".3" stroke-width="2"/>
+    </svg>
+  </div>
+
+  <div class="slide-foot">
+    <span>Developer Experience in the Age of AI · DevBCN 2026 · @salaboy</span>
+    <span class="num">10 / 14</span>
+  </div>
+</section>
+
+
+<!-- ============================================================
+     11 · FIVE LEVELS OF AGENTIC ENGINEERING — the autonomy ladder
+============================================================ -->
+<section class="dark" data-label="Five levels">
+  <div class="slide-frame">
+    <div class="brand"><img src="assets/brand/dash0-logo-2026-color.png" alt="Dash0"></div>
+    <span class="deck-tag white">The autonomy ladder</span>
+  </div>
+
+  <div style="margin-top:48px;max-width:1700px">
+    <p class="kicker" style="color:var(--orange-400)">// You cannot skip levels</p>
+    <h2 class="t-h1" style="color:#fff;margin-top:14px;max-width:32ch">
+      <em>Five Levels</em> of Agentic Engineering.
+    </h2>
+  </div>
+
+  <div style="margin-top:44px;max-width:1700px;display:flex;flex-direction:column;gap:16px">
+
+    <!-- L1 -->
+    <div class="level-row" style="display:grid;grid-template-columns:116px 380px 1fr;gap:28px;align-items:center;padding-left:0;opacity:.78">
+      <div style="width:84px;height:84px;border-radius:50%;background:var(--ink-850);border:2px solid var(--orange-400);display:flex;align-items:center;justify-content:center;font-family:var(--mono);font-size:26px;font-weight:700;color:var(--orange-400)">L1</div>
+      <div class="t-mono" style="font-size:17px;letter-spacing:.2em;color:var(--orange-400);text-transform:uppercase;font-weight:700">GenAI assisted</div>
+      <div style="font-size:25px;color:var(--ink-300);line-height:1.4">Alternatives, suggestions. <em style="color:#fff;font-style:normal">The user drives.</em></div>
+    </div>
+
+    <!-- L2 — Most teams here -->
+    <div class="level-row" style="display:grid;grid-template-columns:116px 380px 1fr;gap:28px;align-items:center;padding-left:60px">
+      <div style="width:96px;height:96px;border-radius:50%;background:var(--ink-850);border:2px solid #FFC870;display:flex;align-items:center;justify-content:center;font-family:var(--mono);font-size:28px;font-weight:700;color:#FFC870;box-shadow:0 0 24px rgba(255,200,112,.3)">L2</div>
+      <div class="t-mono" style="font-size:17px;letter-spacing:.2em;color:#FFC870;text-transform:uppercase;font-weight:700">GenAI augmented</div>
+      <div style="font-size:25px;color:#fff;line-height:1.4">Resource generation and modification. <em style="color:#FFC870;font-style:normal">The user reviews every diff.</em></div>
+    </div>
+
+    <!-- L3 -->
+    <div class="level-row" style="display:grid;grid-template-columns:116px 380px 1fr;gap:28px;align-items:center;padding-left:120px">
+      <div style="width:108px;height:108px;border-radius:50%;background:linear-gradient(155deg,#3A1E1A 0%,#1A1010 100%);border:2px solid var(--red-500);display:flex;align-items:center;justify-content:center;font-family:var(--mono);font-size:30px;font-weight:700;color:var(--red-500);box-shadow:0 0 36px rgba(248,73,77,.4)">L3</div>
+      <div class="t-mono" style="font-size:17px;letter-spacing:.2em;color:var(--red-400);text-transform:uppercase;font-weight:700">Spec-centric</div>
+      <div style="font-size:25px;color:#fff;line-height:1.4">Expected behavior and what's off-limits. <em style="color:var(--red-400);font-style:normal">The user validates intent.</em></div>
+    </div>
+
+    <!-- L4 -->
+    <div class="level-row" style="display:grid;grid-template-columns:116px 380px 1fr;gap:28px;align-items:center;padding-left:180px;opacity:.82">
+      <div style="width:92px;height:92px;border-radius:50%;background:var(--ink-850);border:2px solid var(--red-400);display:flex;align-items:center;justify-content:center;font-family:var(--mono);font-size:28px;font-weight:700;color:var(--red-400)">L4</div>
+      <div class="t-mono" style="font-size:17px;letter-spacing:.2em;color:var(--red-400);text-transform:uppercase;font-weight:700">Selective autonomy</div>
+      <div style="font-size:25px;color:var(--ink-300);line-height:1.4">Trust is built progressively from prior executions. <em style="color:var(--red-400);font-style:normal">Autonomy is earned.</em></div>
+    </div>
+
+    <!-- L5 -->
+    <div class="level-row" style="display:grid;grid-template-columns:116px 380px 1fr;gap:28px;align-items:center;padding-left:240px;opacity:.7">
+      <div style="width:84px;height:84px;border-radius:50%;background:var(--grad);display:flex;align-items:center;justify-content:center;font-family:var(--mono);font-size:26px;font-weight:700;color:#fff;box-shadow:0 0 36px rgba(248,73,77,.4)">L5</div>
+      <div class="t-mono" style="font-size:17px;letter-spacing:.2em;background:var(--grad);-webkit-background-clip:text;background-clip:text;color:transparent;text-transform:uppercase;font-weight:700">Full autonomy</div>
+      <div style="font-size:25px;color:var(--ink-300);line-height:1.4">Agents ship features. <em style="color:#fff;font-style:normal">Humans intervene when things go off rails.</em></div>
+    </div>
+
+  </div>
+
+  <div class="slide-foot">
+    <span>Developer Experience in the Age of AI · DevBCN 2026 · @salaboy</span>
+    <span class="num">11 / 14</span>
+  </div>
+</section>
+
+
+<!-- ============================================================
+     12 · TWO PLAYS — Intent validation & the platform engineering play
+============================================================ -->
+<section class="dark" data-label="Two plays">
+  <div class="slide-frame">
+    <div class="brand"><img src="assets/brand/dash0-logo-2026-color.png" alt="Dash0"></div>
+    <span class="deck-tag">Where the work goes</span>
+  </div>
+
+  <div style="margin-top:64px;max-width:1700px">
+    <p class="kicker" style="color:var(--orange-400)">// Two places to invest</p>
+    <h2 class="t-h1" style="color:#fff;margin-top:18px">Two <em>plays</em>.</h2>
+  </div>
+
+  <div class="grid g-2" style="margin-top:72px;max-width:1700px;gap:48px">
+
+    <div class="card dark" style="padding:56px 48px;min-height:420px;
+        border:2px solid #FFC870;border-radius:24px;
+        background:linear-gradient(155deg,rgba(255,200,112,.14) 0%,rgba(255,200,112,.02) 100%);
+        display:flex;flex-direction:column;gap:24px;
+        box-shadow:0 0 48px rgba(255,200,112,.18)">
+      <div class="t-mono" style="font-size:16px;letter-spacing:.22em;color:#FFC870;text-transform:uppercase;font-weight:700">01 · The inner-loop play</div>
+      <h3 style="font-size:64px;color:#fff;line-height:1.05;letter-spacing:-.02em;margin:0;font-weight:600">
+        Intent <em style="color:#FFC870;font-style:normal">Validation</em>.
+      </h3>
+      <p style="font-size:24px;color:var(--ink-200);line-height:1.45;margin:0">Did the agent build what you actually asked for? Specs, contracts, evals &mdash; not just diff review.</p>
+    </div>
+
+    <div class="card dark" style="padding:56px 48px;min-height:420px;
+        border:2px solid var(--purple-500);border-radius:24px;
+        background:linear-gradient(155deg,rgba(144,120,243,.16) 0%,rgba(144,120,243,.02) 100%);
+        display:flex;flex-direction:column;gap:24px;
+        box-shadow:0 0 48px rgba(144,120,243,.22)">
+      <div class="t-mono" style="font-size:16px;letter-spacing:.22em;color:var(--purple-400);text-transform:uppercase;font-weight:700">02 · The outer-loop play</div>
+      <h3 style="font-size:64px;color:#fff;line-height:1.05;letter-spacing:-.02em;margin:0;font-weight:600">
+        The <em style="color:var(--purple-400);font-style:normal">platform engineering</em> play.
+      </h3>
+      <p style="font-size:24px;color:var(--ink-200);line-height:1.45;margin:0">Standardize the new inner loops. Pave the road for agents the way you paved it for humans.</p>
+    </div>
+
+  </div>
+
+  <div class="slide-foot">
+    <span>Developer Experience in the Age of AI · DevBCN 2026 · @salaboy</span>
+    <span class="num">12 / 14</span>
+  </div>
+</section>
+
+
+<!-- ============================================================
+     13 · WHO'S WINNING — developers + companies
+============================================================ -->
+<section class="dark" data-label="Winners">
+  <div class="slide-frame">
+    <div class="brand"><img src="assets/brand/dash0-logo-2026-color.png" alt="Dash0"></div>
+    <span class="deck-tag">The takeaway</span>
+  </div>
+
+  <div style="margin-top:64px;max-width:1700px">
+    <p class="kicker" style="color:var(--red-500);font-size:56px;letter-spacing:.05em;line-height:1.05">Who's actually winning?</p>
+  </div>
+
+  <div class="grid g-2" style="margin-top:72px;max-width:1700px;gap:48px">
+
+    <!-- Developers winning -->
+    <div class="climb-box" style="--delay:0s;padding:56px 48px;min-height:420px;
+        border:2px solid #FFC870;border-radius:24px;
+        background:linear-gradient(155deg,rgba(255,200,112,.14) 0%,rgba(255,200,112,.02) 100%);
+        display:flex;flex-direction:column;gap:24px;
+        box-shadow:0 0 48px rgba(255,200,112,.18)">
+      <div class="t-mono" style="font-size:16px;letter-spacing:.22em;color:#FFC870;text-transform:uppercase;font-weight:700">Developers</div>
+      <p style="font-size:40px;color:#fff;line-height:1.2;letter-spacing:-.015em;font-weight:500;margin:0">
+        The developers winning are the ones who <em style="color:#FFC870;font-style:normal">redesigned their inner loop</em> &mdash; with the same rigor they'd apply to any system they build.
+      </p>
+      <p style="font-size:22px;color:var(--ink-200);margin-top:auto">Which takes a lot of seniority to do.</p>
+    </div>
+
+    <!-- Companies winning -->
+    <div class="climb-box" style="--delay:.3s;padding:56px 48px;min-height:420px;
+        border:2px solid var(--purple-500);border-radius:24px;
+        background:linear-gradient(155deg,rgba(144,120,243,.16) 0%,rgba(144,120,243,.02) 100%);
+        display:flex;flex-direction:column;gap:24px;
+        box-shadow:0 0 48px rgba(144,120,243,.22)">
+      <div class="t-mono" style="font-size:16px;letter-spacing:.22em;color:var(--purple-400);text-transform:uppercase;font-weight:700">Companies</div>
+      <p style="font-size:40px;color:#fff;line-height:1.2;letter-spacing:-.015em;font-weight:500;margin:0">
+        The companies winning are the ones that <em style="color:var(--purple-400);font-style:normal">standardized the new inner loops</em> and solved the <em style="color:var(--purple-400);font-style:normal">collaboration in the outer loop</em>.
+      </p>
+      <p style="font-size:22px;color:var(--ink-200);margin-top:auto">I haven't seen many of these yet. 🦄</p>
+    </div>
+
+  </div>
+
+  <div class="slide-foot">
+    <span>Developer Experience in the Age of AI · DevBCN 2026 · @salaboy</span>
+    <span class="num">13 / 14</span>
+  </div>
+</section>
+
+
+<!-- ============================================================
+     14 · THANK YOU — sunburst closer
+============================================================ -->
+<section class="dark" data-label="Thank you">
+  <div class="sunburst-bg">
+    <svg viewBox="0 0 1920 1080" preserveAspectRatio="none" aria-hidden="true">
+      <defs>
+        <linearGradient id="ray-close" x1="0" x2="1" y1=".5" y2=".5">
+          <stop offset="0"   stop-color="#F8494D" stop-opacity="0"/>
+          <stop offset=".15" stop-color="#F8494D" stop-opacity="0"/>
+          <stop offset=".45" stop-color="#F8494D" stop-opacity=".65"/>
+          <stop offset=".85" stop-color="#FFC870" stop-opacity=".95"/>
+          <stop offset="1"   stop-color="#FFC870" stop-opacity="0"/>
+        </linearGradient>
+        <radialGradient id="vign-close" cx=".25" cy=".55" r=".75">
+          <stop offset="0"   stop-color="#121212" stop-opacity=".85"/>
+          <stop offset=".55" stop-color="#121212" stop-opacity=".5"/>
+          <stop offset="1"   stop-color="#121212" stop-opacity="0"/>
+        </radialGradient>
+      </defs>
+      <g stroke="url(#ray-close)" stroke-linecap="round" fill="none">
+        <line x1="2400" y1="540" x2="-200" y2="-1260" stroke-width="2"/>
+        <line x1="2400" y1="540" x2="-320" y2="-860"  stroke-width="1.5"/>
+        <line x1="2400" y1="540" x2="-500" y2="-540"  stroke-width="2.5"/>
+        <line x1="2400" y1="540" x2="-650" y2="-200"  stroke-width="1.5"/>
+        <line x1="2400" y1="540" x2="-760" y2="180"   stroke-width="3"/>
+        <line x1="2400" y1="540" x2="-800" y2="540"   stroke-width="2"/>
+        <line x1="2400" y1="540" x2="-760" y2="900"   stroke-width="3"/>
+        <line x1="2400" y1="540" x2="-650" y2="1280"  stroke-width="1.5"/>
+        <line x1="2400" y1="540" x2="-500" y2="1620"  stroke-width="2.5"/>
+        <line x1="2400" y1="540" x2="-320" y2="1940"  stroke-width="1.5"/>
+        <line x1="2400" y1="540" x2="-200" y2="2340"  stroke-width="2"/>
+      </g>
+      <rect width="1920" height="1080" fill="url(#vign-close)"/>
+    </svg>
+  </div>
+
+  <div class="slide-frame">
+    <div class="brand"><img src="assets/brand/dash0-logo-2026-color.png" alt="Dash0"></div>
+    <span class="deck-tag white">DevBCN 2026</span>
+  </div>
+
+  <div style="position:absolute;left:120px;right:120px;top:260px;z-index:3;display:flex;flex-direction:column;align-items:center;gap:32px;text-align:center">
+    <p class="kicker" style="color:#FFC870">// Thanks.</p>
+    <h2 class="display" style="color:#fff;font-size:140px;line-height:.98;text-align:center;max-width:22ch;letter-spacing:-.025em;margin:0">
+      Redesign the loop.
+    </h2>
+    <p class="t-lead" style="color:var(--ink-200);text-align:center;font-size:30px;max-width:60ch;margin:0">
+      <a href="https://salaboy.com" style="color:#FFC870;text-decoration:none;border-bottom:1px solid #FFC870">salaboy.com</a>
+      &nbsp;·&nbsp;
+      <a href="https://dash0.com" style="color:#FFC870;text-decoration:none;border-bottom:1px solid #FFC870">dash0.com</a>
+      &nbsp;·&nbsp; @salaboy
+    </p>
+  </div>
+
+  <div style="position:absolute;left:120px;bottom:140px;z-index:3;display:flex;align-items:center;gap:24px">
+    <div style="width:80px;height:80px;border-radius:50%;background:#F8494D url('Salaboy.jpeg') center/cover no-repeat;flex:none"></div>
+    <div>
+      <div style="font-size:30px;font-weight:600;color:#fff;letter-spacing:-.005em">Mauricio Salatino</div>
+      <div class="t-mono" style="font-size:14px;letter-spacing:.16em;color:#FCB6B8;text-transform:uppercase;margin-top:6px">Ecosystem Engineer · Dash0</div>
+    </div>
+  </div>
+
+</section>
+
+</deck-stage>
+
+<script>
+  // Hide the visible deck controls (overlay + tap zones) while keeping
+  // keyboard navigation, which deck-stage binds to `window`.
+  (function hideDeckControls() {
+    const stage = document.querySelector('deck-stage');
+    if (!stage || !stage.shadowRoot) { requestAnimationFrame(hideDeckControls); return; }
+    const style = document.createElement('style');
+    style.textContent = '.overlay, .tapzones { display: none !important; }';
+    stage.shadowRoot.appendChild(style);
+  })();
+
+  // Space-driven progressive reveal. Each Space press advances `step` by 1
+  // and re-applies state. After the final step, Space falls through to
+  // deck-stage's bubble-phase handler and advances to the next slide.
+  function makeSpaceReveal(sectionSelector, totalSteps, apply) {
+    const stage = document.querySelector('deck-stage');
+    const section = document.querySelector(sectionSelector);
+    if (!stage || !section) return;
+    let step = 0;
+    const tick = () => apply(step, section);
+    const isActive = () => {
+      const slides = Array.from(stage.querySelectorAll(':scope > section'));
+      return slides[stage.index] === section;
+    };
+    stage.addEventListener('slidechange', (e) => {
+      if (e.detail.slide === section) { step = 0; tick(); }
+    });
+    window.addEventListener('keydown', (e) => {
+      if (e.key !== ' ' && e.key !== 'Spacebar') return;
+      if (e.metaKey || e.ctrlKey || e.altKey) return;
+      const t = e.target;
+      if (t && (t.isContentEditable || /^(INPUT|TEXTAREA|SELECT)$/.test(t.tagName))) return;
+      if (!isActive()) return;
+      if (step >= totalSteps) return;
+      step++;
+      tick();
+      e.preventDefault();
+      e.stopImmediatePropagation();
+    }, true);
+    tick();
+  }
+
+  // Slide 11 ("Five Levels"): 10 steps — for each row, circle+label then description.
+  makeSpaceReveal('section[data-label="Five levels"]', 10, (step, section) => {
+    section.querySelectorAll('.level-row').forEach((row, i) => {
+      row.classList.toggle('show-label', step >= i * 2 + 1);
+      row.classList.toggle('show-desc',  step >= i * 2 + 2);
+    });
+  });
+
+  // Slide 12 ("Winners"): 2 steps — one card per press, climb-in animation plays.
+  makeSpaceReveal('section[data-label="Winners"]', 2, (step, section) => {
+    section.querySelectorAll('.climb-box').forEach((box, i) => {
+      box.classList.toggle('revealed', i < step);
+    });
+  });
+</script>
+
+</body>
+</html>
