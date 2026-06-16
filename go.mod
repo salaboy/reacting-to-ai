@@ -1,6 +1,6 @@
 module github.com/salaboy/reacting-to-ai
 
-go 1.26.1
+go 1.23
 
 require (
 	github.com/cenkalti/backoff/v5 v5.0.3 // indirect
