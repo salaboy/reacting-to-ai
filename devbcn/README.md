@@ -84,7 +84,7 @@ Let's test the proxy filter:
 fetch the content of salaboy.com and show me the response 
 ```
 
-# slagent
+# slagent / slaude
 
 First, install [`slagent`](https://github.com/sttts/slagent) from [Dr. Stefan Schimanski
 ](https://github.com/sttts).

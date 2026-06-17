@@ -114,7 +114,6 @@
   </div>
 
   <div style="position:relative;z-index:3;margin-top:220px;max-width:1620px">
-    <p class="kicker" style="color:#FFC870">// A talk about loops, agents, and what actually changes</p>
     <h1 class="display" style="color:#fff;font-size:148px;line-height:.95;letter-spacing:-.028em;margin-top:32px">
       Developer <em>Experience</em><br>
       in the Age of <em>AI</em>.
@@ -129,21 +128,68 @@
     </div>
   </div>
 
-  <div class="slide-foot"><span></span><span class="num">01 / 14</span></div>
+  <div class="slide-foot"><span></span><span class="num">01 / 15</span></div>
 </section>
 
 
 <!-- ============================================================
-     02 · THE TWO LOOPS — Inner → Outer, the framing
+     02 · INTRODUCTION — speaker bio
+============================================================ -->
+<section class="dark" data-label="Introduction">
+  <div class="slide-frame">
+    <div class="brand"><img src="assets/brand/dash0-logo-2026-color.png" alt="Dash0"></div>
+    <span class="deck-tag white">DevBCN 2026</span>
+  </div>
+
+  <div style="display:flex;align-items:center;justify-content:center;gap:96px;height:100%;margin-top:0;position:absolute;inset:0;padding:0 120px">
+
+    <!-- Photo -->
+    <div style="flex:none">
+      <div style="width:420px;height:420px;border-radius:50%;background:url('Salaboy.jpeg') center/cover no-repeat;border:4px solid var(--orange-400);box-shadow:0 0 80px rgba(248,73,77,.35)"></div>
+    </div>
+
+    <!-- Text -->
+    <div style="display:flex;flex-direction:column;gap:24px">
+      <h2 class="display" style="color:#fff;font-size:108px;line-height:.95;letter-spacing:-.025em;margin:0">
+        Mauricio<br><em style="color:var(--orange-400)">Salatino</em>.
+      </h2>
+      <div style="display:flex;align-items:baseline;gap:20px;margin-top:8px">
+        <div class="t-mono" style="font-size:28px;letter-spacing:.12em;color:#FFC870;text-transform:uppercase;font-weight:700">Ecosystem Engineer</div>
+        <div class="t-mono" style="font-size:28px;letter-spacing:.12em;color:var(--red-400);text-transform:uppercase;font-weight:700">@ Dash0</div>
+      </div>
+      <div style="display:flex;gap:20px;margin-top:16px;align-items:center">
+        <span class="t-mono" style="font-size:20px;color:var(--ink-300);letter-spacing:.08em">CNCF TOC Member</span>
+        <span style="color:var(--ink-600)">·</span>
+        <span class="t-mono" style="font-size:20px;color:var(--ink-300);letter-spacing:.08em">Java Champion</span>
+        <span style="color:var(--ink-600)">·</span>
+        <span class="t-mono" style="font-size:20px;color:var(--ink-300);letter-spacing:.08em">Published Author</span>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- Tweet overlay — revealed on first SPACE press -->
+  <div class="tweet-overlay" style="display:none;position:absolute;inset:0;z-index:10;background:rgba(0,0,0,.65);align-items:center;justify-content:center">
+    <img src="tweet.png" alt="Tweet" style="max-height:80%;max-width:70%;object-fit:contain;border-radius:16px;box-shadow:0 0 80px rgba(0,0,0,.6)">
+  </div>
+
+  <div class="slide-foot">
+    <span>Developer Experience in the Age of AI · DevBCN 2026 · @salaboy</span>
+    <span class="num">02 / 15</span>
+  </div>
+</section>
+
+
+<!-- ============================================================
+     03 · THE TWO LOOPS — Inner → Outer, the framing
 ============================================================ -->
 <section class="dark" data-label="Two loops">
   <div class="slide-frame">
     <div class="brand"><img src="assets/brand/dash0-logo-2026-color.png" alt="Dash0"></div>
-    <span class="deck-tag white">The frame for the next 25 minutes</span>
+    <span class="deck-tag white">Software Delivery Pipeline</span>
   </div>
 
   <div style="margin-top:80px;max-width:1700px">
-    <p class="kicker" style="color:var(--orange-400)">// Software has always had two loops</p>
     <h2 class="display" style="color:#fff;font-size:132px;line-height:.98;letter-spacing:-.025em;margin-top:24px">
       Inner Loop <em>→</em> Outer Loop.
     </h2>
@@ -154,20 +200,20 @@
     <div class="card dark" style="flex:1;padding:48px 40px;display:flex;flex-direction:column;gap:18px;border-color:#FFC870">
       <p class="card-tag" style="color:#FFC870">Inner</p>
       <h3 style="color:#fff;font-size:64px;line-height:1;letter-spacing:-.02em;margin:0">Developer-centric.</h3>
-      <p style="color:var(--ink-200);font-size:28px;line-height:1.4;margin-top:8px">What you do at your desk. Tight cycle, fast feedback, deeply personal.</p>
+      <p style="color:var(--ink-200);font-size:28px;line-height:1.4;margin-top:8px">What you do at your desk. Tight cycle, fast feedback.</p>
     </div>
 
     <div class="card dark" style="flex:1;padding:48px 40px;display:flex;flex-direction:column;gap:18px;border-color:var(--red-500)">
       <p class="card-tag" style="color:var(--red-400)">Outer</p>
       <h3 style="color:#fff;font-size:64px;line-height:1;letter-spacing:-.02em;margin:0">Team collaboration.</h3>
-      <p style="color:var(--ink-200);font-size:28px;line-height:1.4;margin-top:8px">What happens with the team. Slower, less personal, where the team becomes a team.</p>
+      <p style="color:var(--ink-200);font-size:28px;line-height:1.4;margin-top:8px">Group validation. Slower, collaboration is required.</p>
     </div>
 
   </div>
 
   <div class="slide-foot">
     <span>Developer Experience in the Age of AI · DevBCN 2026 · @salaboy</span>
-    <span class="num">02 / 14</span>
+    <span class="num">03 / 15</span>
   </div>
 </section>
 
@@ -182,7 +228,6 @@
   </div>
 
   <div style="margin-top:80px;max-width:1700px">
-    <p class="kicker" style="color:#FFC870">// What you used to do at your desk</p>
     <h2 class="t-h1" style="color:#fff;margin-top:18px">The <em>Inner Loop</em>.</h2>
   </div>
 
@@ -196,16 +241,15 @@
     <div class="formula-step warm">debug</div>
   </div>
 
-  <div style="display:flex;justify-content:flex-end;margin-top:96px;max-width:1700px">
-    <div class="thought" style="max-width:520px">
-      <p style="margin:0;font-size:24px;color:#fff;font-weight:600">This is where you learned the system.</p>
-      <p style="margin:10px 0 0;font-size:20px;color:var(--ink-200)">Every debug session absorbs the in-and-outs of your application into your head. That learning is load-bearing.</p>
+  <div style="display:flex;justify-content:center;margin-top:96px;max-width:1700px">
+    <div class="thought" style="max-width:520px;text-align:center">
+      <p style="margin:0;font-size:24px;color:#fff;font-weight:600">This is where you learned the system. Its architecture and inner workings.</p>
     </div>
   </div>
 
   <div class="slide-foot">
     <span>Developer Experience in the Age of AI · DevBCN 2026 · @salaboy</span>
-    <span class="num">03 / 14</span>
+    <span class="num">04 / 15</span>
   </div>
 </section>
 
@@ -220,28 +264,27 @@
   </div>
 
   <div style="margin-top:80px;max-width:1700px">
-    <p class="kicker" style="color:var(--red-400)">// What happens after you push</p>
     <h2 class="t-h1" style="color:#fff;margin-top:18px">The <em>Outer Loop</em>.</h2>
   </div>
 
   <div style="display:flex;align-items:center;justify-content:center;gap:32px;margin-top:96px;flex-wrap:wrap">
     <div class="formula-step">Review PR</div>
     <div class="loop-arrow">→</div>
-    <div class="formula-step">Merge to codebase</div>
+    <div class="formula-step">Merge</div>
     <div class="loop-arrow">→</div>
     <div class="formula-step">Release</div>
   </div>
 
-  <div style="display:flex;justify-content:flex-end;margin-top:96px;max-width:1700px">
-    <div class="thought" style="max-width:560px">
+  <div style="display:flex;justify-content:center;margin-top:96px;max-width:1700px">
+    <div class="thought" style="max-width:560px;text-align:center">
       <p style="margin:0;font-size:24px;color:#fff;font-weight:600">Collaboration lives here.</p>
-      <p style="margin:10px 0 0;font-size:20px;color:var(--ink-200)">Merge conflicts, team decisions, ADRs. Compress this and you compress the thing that holds the team together.</p>
+      <p style="margin:10px 0 0;font-size:20px;color:var(--ink-200)">Merge conflicts, team decisions, ADRs.</p>
     </div>
   </div>
 
   <div class="slide-foot">
     <span>Developer Experience in the Age of AI · DevBCN 2026 · @salaboy</span>
-    <span class="num">04 / 14</span>
+    <span class="num">05 / 15</span>
   </div>
 </section>
 
@@ -284,11 +327,11 @@
     <!-- Commentary -->
     <div style="display:flex;flex-direction:column;gap:28px">
       <div class="thought" style="max-width:none">
-        <p style="margin:0;font-size:24px;color:#fff;font-weight:600">It automates the inner loop in a generic way.</p>
+        <p style="margin:0;font-size:24px;color:#fff;font-weight:600">Agent Harness.</p>
         <p style="margin:10px 0 0;font-size:20px;color:var(--ink-200)">A wrapper around an LLM that executes <span style="color:#fff">code → build → test → debug</span> for you. Faster, but generic — it doesn't know your system.</p>
       </div>
       <div class="thought" style="max-width:none">
-        <p style="margin:0;font-size:20px;color:var(--ink-200)">Same shape across every vendor: Claude Code, Cursor, Aider, Devin, OpenCode, langchain4j. The plumbing differs; the loop is the same.</p>
+        <p style="margin:0;font-size:20px;color:var(--ink-200)">Same shape across every vendor: Claude Code, Codex, OpenCode, etc. The plumbing differs; the loop is the same.</p>
       </div>
     </div>
 
@@ -296,13 +339,47 @@
 
   <div class="slide-foot">
     <span>Developer Experience in the Age of AI · DevBCN 2026 · @salaboy</span>
-    <span class="num">05 / 14</span>
+    <span class="num">06 / 15</span>
   </div>
 </section>
 
 
 <!-- ============================================================
-     06 · SO WHAT CHANGED? — sunburst question + the three uncomfortable truths
+     06 · WHAT CHANGED? — gambling + claude code images
+============================================================ -->
+<section class="dark" data-label="What changed images">
+  <div class="slide-frame">
+    <div class="brand"><img src="assets/brand/dash0-logo-2026-color.png" alt="Dash0"></div>
+    <span class="deck-tag white">DevBCN 2026</span>
+  </div>
+
+  <div style="margin-top:80px;max-width:1700px">
+    <h2 class="display" style="color:#fff;font-size:128px;line-height:.95;letter-spacing:-.025em;margin:0">
+      What <em>changed</em>?
+    </h2>
+  </div>
+
+  <div style="display:grid;grid-template-columns:2fr 1fr;gap:48px;align-items:center;margin-top:64px;max-width:1700px">
+
+    <div style="display:flex;justify-content:center;align-items:center">
+      <img src="claude-code.png" alt="Claude Code" style="width:70vw;max-width:100%;object-fit:contain;border-radius:16px">
+    </div>
+
+    <div style="display:flex;justify-content:flex-end;align-items:center">
+      <img src="gambiling.gif" alt="Gambling" style="height:75vh;max-width:100%;object-fit:contain;border-radius:16px">
+    </div>
+
+  </div>
+
+  <div class="slide-foot">
+    <span>Developer Experience in the Age of AI · DevBCN 2026 · @salaboy</span>
+    <span class="num">07 / 15</span>
+  </div>
+</section>
+
+
+<!-- ============================================================
+     07 · SO WHAT CHANGED? — sunburst question + the three uncomfortable truths
 ============================================================ -->
 <section class="dark" data-label="So what changed">
   <div class="sunburst-bg">
@@ -344,7 +421,6 @@
   </div>
 
   <div style="position:relative;z-index:3;margin-top:160px;max-width:1700px">
-    <p class="kicker" style="color:#FFC870">// So…</p>
     <h2 class="display" style="color:#fff;font-size:128px;line-height:.95;letter-spacing:-.025em;margin-top:24px">
       What <em>changed</em>?
     </h2>
@@ -382,7 +458,7 @@
 
   <div class="slide-foot">
     <span>Developer Experience in the Age of AI · DevBCN 2026 · @salaboy</span>
-    <span class="num">06 / 14</span>
+    <span class="num">08 / 15</span>
   </div>
 </section>
 
@@ -397,13 +473,12 @@
   </div>
 
   <div style="margin-top:64px;max-width:1700px">
-    <p class="kicker" style="color:var(--purple-400)">// The good news, and the gambling addiction</p>
-    <h2 class="t-h1" style="color:#fff;margin-top:18px">Parallel loops &mdash; and a <em>leap of faith</em>.</h2>
+    <h2 class="t-h1" style="color:#fff;margin-top:18px">Parallel loops.</h2>
   </div>
 
-  <div style="display:grid;grid-template-columns:1fr 1fr;gap:48px;margin-top:56px;max-width:1700px">
+  <div style="display:grid;grid-template-columns:1fr 1fr;gap:48px;align-items:center;margin-top:56px;max-width:1700px">
 
-    <!-- Parallel inner loops -->
+    <!-- Parallel inner loops — card left -->
     <div class="card dark" style="padding:40px;border-color:var(--purple-500);display:flex;flex-direction:column;gap:18px">
       <p class="card-tag" style="color:var(--purple-400)">Real leverage</p>
       <h3 style="color:#fff;font-size:48px;line-height:1.05;letter-spacing:-.02em;margin:0">Multiple parallel<br>inner loops.</h3>
@@ -416,28 +491,16 @@
       <p style="color:var(--ink-200);font-size:22px;line-height:1.45;margin:6px 0 0">Four cycles running while you think. That's real.</p>
     </div>
 
-    <!-- The leap of faith - YOLO prompt -->
-    <div class="card dark" style="padding:40px;border-color:var(--red-500);display:flex;flex-direction:column;gap:18px">
-      <p class="card-tag" style="color:var(--red-400)">The leap of faith</p>
-      <h3 style="color:#fff;font-size:48px;line-height:1.05;letter-spacing:-.02em;margin:0">Vibe coding.</h3>
-
-      <div style="background:#0E0E0E;border:1px solid var(--ink-700);border-radius:14px;padding:24px 28px;font-family:var(--mono);font-size:19px;color:#E8E8E8;line-height:1.55;margin-top:8px">
-        <div style="color:#62B8FF;font-weight:600">Bash command</div>
-        <div style="color:#E8E8E8;margin-top:6px"><span style="color:#A88BFF">python3</span> -m venv /tmp/imgvenv && pip install Pillow</div>
-        <div style="color:var(--ink-400);margin-top:14px">Do you want to proceed?</div>
-        <div style="color:#E8E8E8">&nbsp;&nbsp;1. Yes</div>
-        <div style="color:#62B8FF">&rsaquo; 2. Yes, and don't ask again for: python3:*</div>
-        <div style="color:#E8E8E8">&nbsp;&nbsp;3. No</div>
-      </div>
-
-      <p style="color:var(--ink-200);font-size:22px;line-height:1.45;margin:6px 0 0">Option 2 is the gambling addiction. Be honest about which one you've been picking.</p>
+    <!-- Multi-tasking image — right -->
+    <div style="display:flex;align-items:center;justify-content:center">
+      <img src="multi-tasking.webp" alt="Multi-tasking" style="max-height:560px;max-width:100%;object-fit:contain;border-radius:12px">
     </div>
 
   </div>
 
   <div class="slide-foot">
     <span>Developer Experience in the Age of AI · DevBCN 2026 · @salaboy</span>
-    <span class="num">07 / 14</span>
+    <span class="num">09 / 15</span>
   </div>
 </section>
 
@@ -489,8 +552,8 @@
       </div>
       <div style="padding:32px">
         <p class="card-tag" style="color:var(--purple-500)">03 · Lever</p>
-        <h4>Conventions</h4>
-        <p>So its output looks like the rest of your codebase.</p>
+        <h4>Model selection</h4>
+        <p>What model adapts better to your needs.</p>
       </div>
     </div>
 
@@ -498,7 +561,7 @@
 
   <div class="slide-foot">
     <span>Developer Experience in the Age of AI · DevBCN 2026 · @salaboy</span>
-    <span class="num">08 / 14</span>
+    <span class="num">10 / 15</span>
   </div>
 </section>
 
@@ -513,35 +576,40 @@
   </div>
 
   <div style="margin-top:64px;max-width:1700px">
-    <p class="kicker" style="color:#FFC870">// Five stops, mostly on the inner loop</p>
     <h2 class="t-h1" style="color:#fff;margin-top:18px">Demos.</h2>
   </div>
 
-  <div class="grid g-3" style="margin-top:64px;max-width:1700px">
+  <div style="display:grid;grid-template-columns:repeat(2,1fr);grid-template-rows:repeat(2,1fr);gap:20px;margin-top:24px;max-width:1700px;height:680px">
 
-    <div class="card dark" style="padding:40px 32px;border-color:var(--orange-400);display:flex;flex-direction:column;gap:18px;min-height:380px">
-      <div class="t-mono" style="font-size:15px;letter-spacing:.22em;color:var(--orange-400);text-transform:uppercase;font-weight:700">Demo 1</div>
-      <h4 style="font-size:40px;color:#fff;line-height:1.15;margin:0">Building blocks for your own agents.</h4>
-      <p style="font-size:22px;color:var(--ink-200);margin-top:auto;line-height:1.45">Tools, memory, workflows, guardrails.</p>
+    <div class="card dark" style="padding:36px;border-color:var(--orange-400);display:flex;flex-direction:column;gap:14px">
+      <div class="t-mono" style="font-size:14px;letter-spacing:.22em;color:var(--orange-400);text-transform:uppercase;font-weight:700">Demo 1</div>
+      <h4 style="font-size:36px;color:#fff;line-height:1.1;margin:0">Building blocks for your own agents.</h4>
+      <p style="font-size:20px;color:var(--ink-200);line-height:1.45;margin:0">Claude Code -> Declarative Agents Definitions (YAML) -> Frameworks (Langchain)</p>
     </div>
 
-    <div class="card dark" style="padding:40px 32px;border-color:#FFC870;display:flex;flex-direction:column;gap:18px;min-height:380px">
-      <div class="t-mono" style="font-size:15px;letter-spacing:.22em;color:#FFC870;text-transform:uppercase;font-weight:700">Demo 2</div>
-      <h4 style="font-size:40px;color:#fff;line-height:1.15;margin:0">YOLO mode.</h4>
-      <p style="font-size:22px;color:var(--ink-200);margin-top:auto;line-height:1.45">"Yes, and don't ask again." What could go wrong?</p>
+    <div class="card dark" style="padding:36px;border-color:#FFC870;display:flex;flex-direction:column;gap:14px">
+      <div class="t-mono" style="font-size:14px;letter-spacing:.22em;color:#FFC870;text-transform:uppercase;font-weight:700">Demo 2</div>
+      <h4 style="font-size:36px;color:#fff;line-height:1.1;margin:0">YOLO mode.</h4>
+      <p style="font-size:20px;color:var(--ink-200);line-height:1.45;margin:0">"Yes, and don't ask again." Agent have full autonomy to do what the want.</p>
     </div>
 
-    <div class="card dark" style="padding:40px 32px;border-color:var(--red-500);display:flex;flex-direction:column;gap:18px;min-height:380px">
-      <div class="t-mono" style="font-size:15px;letter-spacing:.22em;color:var(--red-400);text-transform:uppercase;font-weight:700">Demo 3</div>
-      <h4 style="font-size:40px;color:#fff;line-height:1.15;margin:0">Pair programming &amp; collaboration.</h4>
-      <p style="font-size:22px;color:var(--ink-200);margin-top:auto;line-height:1.45">Agents and humans on the same diff.</p>
+    <div class="card dark" style="padding:36px;border-color:var(--red-500);display:flex;flex-direction:column;gap:14px">
+      <div class="t-mono" style="font-size:14px;letter-spacing:.22em;color:var(--red-400);text-transform:uppercase;font-weight:700">Demo 3</div>
+      <h4 style="font-size:36px;color:#fff;line-height:1.1;margin:0">Pair programming &amp; collaboration.</h4>
+      <p style="font-size:20px;color:var(--ink-200);line-height:1.45;margin:0">Shared agent sessions with humans.</p>
+    </div>
+
+    <div class="card dark" style="padding:36px;border-color:var(--purple-500);display:flex;flex-direction:column;gap:14px">
+      <div class="t-mono" style="font-size:14px;letter-spacing:.22em;color:var(--purple-400);text-transform:uppercase;font-weight:700">Demo 4</div>
+      <h4 style="font-size:36px;color:#fff;line-height:1.1;margin:0">Observing your agents.</h4>
+      <p style="font-size:20px;color:var(--ink-200);line-height:1.45;margin:0">Understand what they are doing, how much did they cost and how much time they spent.</p>
     </div>
 
   </div>
 
   <div class="slide-foot">
     <span>Developer Experience in the Age of AI · DevBCN 2026 · @salaboy</span>
-    <span class="num">09 / 14</span>
+    <span class="num">11 / 15</span>
   </div>
 </section>
 
@@ -555,62 +623,84 @@
     <span class="deck-tag white">Zoom out</span>
   </div>
 
-  <div style="margin-top:120px;max-width:1700px">
-    <p class="kicker" style="color:var(--red-400)">// The outer loop didn't go away</p>
-    <h2 class="display" style="color:#fff;font-size:118px;line-height:.98;letter-spacing:-.025em;margin-top:24px">
-      There is never just <em>one agent</em>.
-    </h2>
-    <p class="t-lead" style="color:var(--ink-200);font-size:34px;margin-top:36px;max-width:46ch">
-      Now you're coordinating a <em style="color:#fff;font-style:normal">distributed multi-agent system</em> &mdash; not just a team.
-    </p>
-  </div>
+  <div style="display:grid;grid-template-columns:1fr 1fr;gap:64px;align-items:center;margin-top:80px;max-width:1700px">
 
-  <!-- Decorative multi-agent graph -->
-  <div style="position:absolute;right:120px;top:240px;width:520px;height:520px;opacity:.85">
-    <svg viewBox="0 0 520 520" aria-hidden="true">
-      <defs>
-        <linearGradient id="ma-grad" x1="0" y1="0" x2="1" y2="1">
-          <stop offset="0%" stop-color="#F8494D"/>
-          <stop offset="100%" stop-color="#9078F3"/>
-        </linearGradient>
-        <radialGradient id="ma-glow" cx=".5" cy=".5" r=".5">
-          <stop offset="0%" stop-color="#F8494D" stop-opacity=".35"/>
-          <stop offset="100%" stop-color="#F8494D" stop-opacity="0"/>
-        </radialGradient>
-      </defs>
-      <circle cx="260" cy="260" r="220" fill="url(#ma-glow)"/>
-      <g stroke="url(#ma-grad)" stroke-width="1.5" stroke-opacity=".55" fill="none">
-        <line x1="260" y1="260" x2="80"  y2="80"/>
-        <line x1="260" y1="260" x2="440" y2="80"/>
-        <line x1="260" y1="260" x2="80"  y2="440"/>
-        <line x1="260" y1="260" x2="440" y2="440"/>
-        <line x1="260" y1="260" x2="260" y2="40"/>
-        <line x1="260" y1="260" x2="260" y2="480"/>
-        <line x1="260" y1="260" x2="40"  y2="260"/>
-        <line x1="260" y1="260" x2="480" y2="260"/>
-        <line x1="80"  y1="80"  x2="440" y2="80"/>
-        <line x1="80"  y1="440" x2="440" y2="440"/>
-        <line x1="80"  y1="80"  x2="80"  y2="440"/>
-        <line x1="440" y1="80"  x2="440" y2="440"/>
-      </g>
-      <g fill="url(#ma-grad)">
-        <circle cx="80"  cy="80"  r="14"/>
-        <circle cx="440" cy="80"  r="14"/>
-        <circle cx="80"  cy="440" r="14"/>
-        <circle cx="440" cy="440" r="14"/>
-        <circle cx="260" cy="40"  r="11"/>
-        <circle cx="260" cy="480" r="11"/>
-        <circle cx="40"  cy="260" r="11"/>
-        <circle cx="480" cy="260" r="11"/>
-      </g>
-      <circle cx="260" cy="260" r="32" fill="url(#ma-grad)"/>
-      <circle cx="260" cy="260" r="32" fill="none" stroke="#fff" stroke-opacity=".3" stroke-width="2"/>
-    </svg>
+    <!-- Text left -->
+    <div>
+      <h2 class="display" style="color:#fff;font-size:100px;line-height:.98;letter-spacing:-.025em;margin-top:24px">
+        There is never just <em>one agent</em>.
+      </h2>
+      <p class="t-lead" style="color:var(--ink-200);font-size:28px;margin-top:36px;max-width:38ch;line-height:1.5">
+        Now you're in charge of a distributed multi-agent system.
+      </p>
+    </div>
+
+    <!-- Multi-agent diagram right — full mesh, 6 nodes hexagonal -->
+    <div style="display:flex;align-items:center;justify-content:center">
+      <svg viewBox="0 0 680 560" width="680" height="560" aria-hidden="true">
+        <defs>
+          <filter id="glow-node">
+            <feGaussianBlur stdDeviation="5" result="blur"/>
+            <feMerge><feMergeNode in="blur"/><feMergeNode in="SourceGraphic"/></feMerge>
+          </filter>
+        </defs>
+
+        <!-- Full mesh lines drawn first (behind nodes) — all 15 pairs -->
+        <g stroke="#4A4A6A" stroke-width="1.2" stroke-opacity=".4" fill="none">
+          <line x1="340" y1="70"  x2="167" y2="170"/>
+          <line x1="340" y1="70"  x2="513" y2="170"/>
+          <line x1="340" y1="70"  x2="167" y2="390"/>
+          <line x1="340" y1="70"  x2="513" y2="390"/>
+          <line x1="340" y1="70"  x2="340" y2="490"/>
+          <line x1="167" y1="170" x2="513" y2="170"/>
+          <line x1="167" y1="170" x2="167" y2="390"/>
+          <line x1="167" y1="170" x2="513" y2="390"/>
+          <line x1="167" y1="170" x2="340" y2="490"/>
+          <line x1="513" y1="170" x2="167" y2="390"/>
+          <line x1="513" y1="170" x2="513" y2="390"/>
+          <line x1="513" y1="170" x2="340" y2="490"/>
+          <line x1="167" y1="390" x2="513" y2="390"/>
+          <line x1="167" y1="390" x2="340" y2="490"/>
+          <line x1="513" y1="390" x2="340" y2="490"/>
+        </g>
+
+        <!-- ORCHESTRATOR — purple, top center -->
+        <rect x="255" y="40"  width="170" height="60" rx="12" fill="#0E0E20" stroke="#9078F3" stroke-width="2" filter="url(#glow-node)"/>
+        <text x="340" y="65"  text-anchor="middle" fill="#B8A4FF" font-size="12" font-family="monospace" font-weight="700" letter-spacing="1.5">PLANNER</text>
+        <text x="340" y="85"  text-anchor="middle" fill="#fff"    font-size="17" font-family="monospace">human + agent</text>
+
+        <!-- CODING AGENT — red, top-left -->
+        <rect x="82"  y="140" width="170" height="60" rx="12" fill="#0E0E0E" stroke="#F8494D" stroke-width="2" filter="url(#glow-node)"/>
+        <text x="167" y="165" text-anchor="middle" fill="#FCB6B8" font-size="12" font-family="monospace" font-weight="700" letter-spacing="1.5">CODING AGENT</text>
+        <text x="167" y="185" text-anchor="middle" fill="#fff"    font-size="17" font-family="monospace">feat/auth</text>
+
+        <!-- REVIEW AGENT — red, top-right -->
+        <rect x="428" y="140" width="170" height="60" rx="12" fill="#0E0E0E" stroke="#F8494D" stroke-width="2" filter="url(#glow-node)"/>
+        <text x="513" y="165" text-anchor="middle" fill="#FCB6B8" font-size="12" font-family="monospace" font-weight="700" letter-spacing="1.5">REVIEW AGENT</text>
+        <text x="513" y="185" text-anchor="middle" fill="#fff"    font-size="17" font-family="monospace">PR #142</text>
+
+        <!-- TEST AGENT — gold, bottom-left -->
+        <rect x="82"  y="360" width="170" height="60" rx="12" fill="#0E0E0E" stroke="#FFC870" stroke-width="2" filter="url(#glow-node)"/>
+        <text x="167" y="385" text-anchor="middle" fill="#FFE0A0" font-size="12" font-family="monospace" font-weight="700" letter-spacing="1.5">TEST AGENT</text>
+        <text x="167" y="405" text-anchor="middle" fill="#fff"    font-size="17" font-family="monospace">e2e suite</text>
+
+        <!-- DEPLOY AGENT — gold, bottom-right -->
+        <rect x="428" y="360" width="170" height="60" rx="12" fill="#0E0E0E" stroke="#FFC870" stroke-width="2" filter="url(#glow-node)"/>
+        <text x="513" y="385" text-anchor="middle" fill="#FFE0A0" font-size="12" font-family="monospace" font-weight="700" letter-spacing="1.5">DEPLOY AGENT</text>
+        <text x="513" y="405" text-anchor="middle" fill="#fff"    font-size="17" font-family="monospace">staging</text>
+
+        <!-- SRE AGENT — orange, bottom center -->
+        <rect x="255" y="460" width="170" height="60" rx="12" fill="#0E0E0E" stroke="#FD8C66" stroke-width="2" filter="url(#glow-node)"/>
+        <text x="340" y="485" text-anchor="middle" fill="#FFBFA0" font-size="12" font-family="monospace" font-weight="700" letter-spacing="1.5">SRE AGENT</text>
+        <text x="340" y="505" text-anchor="middle" fill="#fff"    font-size="17" font-family="monospace">troubleshoot</text>
+      </svg>
+    </div>
+
   </div>
 
   <div class="slide-foot">
     <span>Developer Experience in the Age of AI · DevBCN 2026 · @salaboy</span>
-    <span class="num">10 / 14</span>
+    <span class="num">12 / 15</span>
   </div>
 </section>
 
@@ -672,7 +762,7 @@
 
   <div class="slide-foot">
     <span>Developer Experience in the Age of AI · DevBCN 2026 · @salaboy</span>
-    <span class="num">11 / 14</span>
+    <span class="num">13 / 15</span>
   </div>
 </section>
 
@@ -687,7 +777,6 @@
   </div>
 
   <div style="margin-top:64px;max-width:1700px">
-    <p class="kicker" style="color:var(--orange-400)">// Two places to invest</p>
     <h2 class="t-h1" style="color:#fff;margin-top:18px">Two <em>plays</em>.</h2>
   </div>
 
@@ -698,11 +787,11 @@
         background:linear-gradient(155deg,rgba(255,200,112,.14) 0%,rgba(255,200,112,.02) 100%);
         display:flex;flex-direction:column;gap:24px;
         box-shadow:0 0 48px rgba(255,200,112,.18)">
-      <div class="t-mono" style="font-size:16px;letter-spacing:.22em;color:#FFC870;text-transform:uppercase;font-weight:700">01 · The inner-loop play</div>
+      <div class="t-mono" style="font-size:16px;letter-spacing:.22em;color:#FFC870;text-transform:uppercase;font-weight:700">01 · Raising the abstraction layer</div>
       <h3 style="font-size:64px;color:#fff;line-height:1.05;letter-spacing:-.02em;margin:0;font-weight:600">
-        Intent <em style="color:#FFC870;font-style:normal">Validation</em>.
+        Spec <em style="color:#FFC870;font-style:normal">Driven</em>.
       </h3>
-      <p style="font-size:24px;color:var(--ink-200);line-height:1.45;margin:0">Did the agent build what you actually asked for? Specs, contracts, evals &mdash; not just diff review.</p>
+      <p style="font-size:24px;color:var(--ink-200);line-height:1.45;margin:0">Did the agent have the right context to work with Specs, contracts, evals?</p>
     </div>
 
     <div class="card dark" style="padding:56px 48px;min-height:420px;
@@ -710,74 +799,25 @@
         background:linear-gradient(155deg,rgba(144,120,243,.16) 0%,rgba(144,120,243,.02) 100%);
         display:flex;flex-direction:column;gap:24px;
         box-shadow:0 0 48px rgba(144,120,243,.22)">
-      <div class="t-mono" style="font-size:16px;letter-spacing:.22em;color:var(--purple-400);text-transform:uppercase;font-weight:700">02 · The outer-loop play</div>
+      <div class="t-mono" style="font-size:16px;letter-spacing:.22em;color:var(--purple-400);text-transform:uppercase;font-weight:700">02 · Investing in your platform</div>
       <h3 style="font-size:64px;color:#fff;line-height:1.05;letter-spacing:-.02em;margin:0;font-weight:600">
-        The <em style="color:var(--purple-400);font-style:normal">platform engineering</em> play.
+        The <em style="color:var(--purple-400);font-style:normal">platform</em> that learns.
       </h3>
-      <p style="font-size:24px;color:var(--ink-200);line-height:1.45;margin:0">Standardize the new inner loops. Pave the road for agents the way you paved it for humans.</p>
+      <p style="font-size:24px;color:var(--ink-200);line-height:1.45;margin:0">Collect data, measure and make your agents learn over time.</p>
     </div>
 
   </div>
 
   <div class="slide-foot">
     <span>Developer Experience in the Age of AI · DevBCN 2026 · @salaboy</span>
-    <span class="num">12 / 14</span>
+    <span class="num">14 / 15</span>
   </div>
 </section>
 
 
-<!-- ============================================================
-     13 · WHO'S WINNING — developers + companies
-============================================================ -->
-<section class="dark" data-label="Winners">
-  <div class="slide-frame">
-    <div class="brand"><img src="assets/brand/dash0-logo-2026-color.png" alt="Dash0"></div>
-    <span class="deck-tag">The takeaway</span>
-  </div>
-
-  <div style="margin-top:64px;max-width:1700px">
-    <p class="kicker" style="color:var(--red-500);font-size:56px;letter-spacing:.05em;line-height:1.05">Who's actually winning?</p>
-  </div>
-
-  <div class="grid g-2" style="margin-top:72px;max-width:1700px;gap:48px">
-
-    <!-- Developers winning -->
-    <div class="climb-box" style="--delay:0s;padding:56px 48px;min-height:420px;
-        border:2px solid #FFC870;border-radius:24px;
-        background:linear-gradient(155deg,rgba(255,200,112,.14) 0%,rgba(255,200,112,.02) 100%);
-        display:flex;flex-direction:column;gap:24px;
-        box-shadow:0 0 48px rgba(255,200,112,.18)">
-      <div class="t-mono" style="font-size:16px;letter-spacing:.22em;color:#FFC870;text-transform:uppercase;font-weight:700">Developers</div>
-      <p style="font-size:40px;color:#fff;line-height:1.2;letter-spacing:-.015em;font-weight:500;margin:0">
-        The developers winning are the ones who <em style="color:#FFC870;font-style:normal">redesigned their inner loop</em> &mdash; with the same rigor they'd apply to any system they build.
-      </p>
-      <p style="font-size:22px;color:var(--ink-200);margin-top:auto">Which takes a lot of seniority to do.</p>
-    </div>
-
-    <!-- Companies winning -->
-    <div class="climb-box" style="--delay:.3s;padding:56px 48px;min-height:420px;
-        border:2px solid var(--purple-500);border-radius:24px;
-        background:linear-gradient(155deg,rgba(144,120,243,.16) 0%,rgba(144,120,243,.02) 100%);
-        display:flex;flex-direction:column;gap:24px;
-        box-shadow:0 0 48px rgba(144,120,243,.22)">
-      <div class="t-mono" style="font-size:16px;letter-spacing:.22em;color:var(--purple-400);text-transform:uppercase;font-weight:700">Companies</div>
-      <p style="font-size:40px;color:#fff;line-height:1.2;letter-spacing:-.015em;font-weight:500;margin:0">
-        The companies winning are the ones that <em style="color:var(--purple-400);font-style:normal">standardized the new inner loops</em> and solved the <em style="color:var(--purple-400);font-style:normal">collaboration in the outer loop</em>.
-      </p>
-      <p style="font-size:22px;color:var(--ink-200);margin-top:auto">I haven't seen many of these yet. 🦄</p>
-    </div>
-
-  </div>
-
-  <div class="slide-foot">
-    <span>Developer Experience in the Age of AI · DevBCN 2026 · @salaboy</span>
-    <span class="num">13 / 14</span>
-  </div>
-</section>
-
 
 <!-- ============================================================
-     14 · THANK YOU — sunburst closer
+     13 · THANK YOU — sunburst closer
 ============================================================ -->
 <section class="dark" data-label="Thank you">
   <div class="sunburst-bg">
@@ -821,7 +861,7 @@
   <div style="position:absolute;left:120px;right:120px;top:260px;z-index:3;display:flex;flex-direction:column;align-items:center;gap:32px;text-align:center">
     <p class="kicker" style="color:#FFC870">// Thanks.</p>
     <h2 class="display" style="color:#fff;font-size:140px;line-height:.98;text-align:center;max-width:22ch;letter-spacing:-.025em;margin:0">
-      Redesign the loop.
+      <em style="color:var(--orange-400);font-style:normal">Agents</em> are here,<br>let's make them <em style="color:#FFC870;font-style:normal">useful</em>.
     </h2>
     <p class="t-lead" style="color:var(--ink-200);text-align:center;font-size:30px;max-width:60ch;margin:0">
       <a href="https://salaboy.com" style="color:#FFC870;text-decoration:none;border-bottom:1px solid #FFC870">salaboy.com</a>
@@ -884,6 +924,12 @@
     }, true);
     tick();
   }
+
+  // Slide 2 ("Introduction"): 1 step — show tweet overlay on first Space press.
+  makeSpaceReveal('section[data-label="Introduction"]', 1, (step, section) => {
+    const overlay = section.querySelector('.tweet-overlay');
+    if (overlay) overlay.style.display = step >= 1 ? 'flex' : 'none';
+  });
 
   // Slide 11 ("Five Levels"): 10 steps — for each row, circle+label then description.
   makeSpaceReveal('section[data-label="Five levels"]', 10, (step, section) => {

@@ -5,17 +5,26 @@ import json
 def load_config(path):
     try:
         with open(path) as f:
-            return json.loads(f.read())
+            return json.load(f)
     except FileNotFoundError:
         raise RuntimeError(f"Config file '{path}' not found. Cannot proceed without configuration.")
+    except json.JSONDecodeError:
+        raise RuntimeError(f"Config file '{path}' contains invalid JSON.")
 
 def calculate_average(numbers):
     if not numbers:
         print("Warning: empty list provided. Returning None.")
         return None
+    numbers = [n for n in numbers if isinstance(n, (int, float))]
+    if not numbers:
+        print("Warning: no valid numeric values. Returning None.")
+        return None
     return round(sum(numbers) / len(numbers), 2)
 
 def get_user(users, user_id):
+    if not isinstance(users, dict):
+        print("Warning: invalid users data.")
+        return None
     user = users.get(user_id)
     if user is None:
         print(f"Warning: user '{user_id}' not found.")
