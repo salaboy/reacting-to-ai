@@ -1,0 +1,591 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<script type="application/json" id="speaker-notes">
+[
+  "Opening slide. 'Reacting to AI' — keep this as a pause. The room is full of platform engineers being asked to do something with AI. We're going to spend the next twenty minutes on how to react.",
+  "First narrowing. When we say 'AI' in this room, what we actually mean — most of the time — is GenAI. Foundation models, LLMs, embeddings, and everything we build on top. So: reacting to GenAI.",
+  "Quick reframe. The title was a tease. What we're really reacting to is not 'AI' in the abstract — it's distributed multi-agent systems landing on our platforms.",
+  "Five levels of agentic engineering. L1 GenAI Assisted — the agent offers alternatives, you drive. L2 GenAI Augmented — agents generate diffs, humans review every one. That's where most teams actually are, and where it feels like you're done — you're not. L3 Spec-Centric — agents lean on specs to know what's off-limits, and you validate intent and proof, not diffs. L4 Selective Autonomy — trust is earned, per service, from prior executions. L5 Full Autonomy — agents ship features, humans step in when things go off rails. The load-bearing point: you cannot skip levels.",
+  "Don't panic. We've absorbed two waves like this already. Open source taught us how to compose. Kubernetes taught us how to schedule and isolate. The CNCF ecosystem gave us a shared vocabulary. The substrate is here.",
+  "So, where do we start? Hold the question for a beat — the room is asking it, and we'll answer it together over the next few slides.",
+  "Four takeaways. One: agents are everywhere — across the entire SDLC, not just one corner. Two: LLMs themselves don't learn — that means your platform has to. Three: non-determinism is no longer an application concern, it's a platform concern. Four: measure, measure, measure — DORA, SPACE, DX/AX. The frameworks already exist; bring them to this new shape.",
+  "Thanks. Catch me after — happy to talk about how any of this lands in your specific stack."
+]
+</script>
+<title>Domando a la IA</title>
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500;600;700;900&family=Martian+Mono:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="deck.css">
+<script src="deck-stage.js"></script>
+<style>
+  @keyframes climb-in { from { opacity: 0; transform: translateY(28px) scale(.96); } to { opacity: 1; transform: translateY(0) scale(1); } }
+  @keyframes climb-arrow-in { from { opacity: 0; transform: translateX(-12px); } to { opacity: 1; transform: translateX(0); } }
+  .climb-box, .climb-arrow { opacity: 0; }
+  .climb-box.revealed { animation: climb-in .55s cubic-bezier(.2,.7,.2,1) forwards; animation-delay: 0s; }
+  .climb-arrow.revealed { animation: climb-arrow-in .4s ease-out forwards; animation-delay: 0s; }
+  .slide-foot { bottom: 72px; font-size: 20px; letter-spacing: .1em; color: var(--ink-300); }
+  .dark .slide-foot { color: var(--ink-300); }
+  .level-row > * { opacity: 0; transition: opacity 320ms ease; }
+  .level-row.show-label > *:nth-child(1),
+  .level-row.show-label > *:nth-child(2) { opacity: 1; }
+  .level-row.show-desc > *:nth-child(3) { opacity: 1; }
+</style>
+</head>
+<body>
+
+<deck-stage width="1920" height="1080">
+
+<!-- ============================================================
+     01 · TITLE — sunburst hero
+============================================================ -->
+<section class="dark" data-label="Title">
+  <div class="sunburst-bg">
+    <svg viewBox="0 0 1920 1080" preserveAspectRatio="none" aria-hidden="true">
+      <defs>
+        <linearGradient id="ray-title" x1="0" x2="1" y1=".5" y2=".5">
+          <stop offset="0"   stop-color="#F8494D" stop-opacity="0"/>
+          <stop offset=".15" stop-color="#F8494D" stop-opacity="0"/>
+          <stop offset=".45" stop-color="#F8494D" stop-opacity=".65"/>
+          <stop offset=".85" stop-color="#FFC870" stop-opacity=".95"/>
+          <stop offset="1"   stop-color="#FFC870" stop-opacity="0"/>
+        </linearGradient>
+        <radialGradient id="vign-title" cx=".25" cy=".55" r=".75">
+          <stop offset="0"   stop-color="#121212" stop-opacity=".85"/>
+          <stop offset=".55" stop-color="#121212" stop-opacity=".5"/>
+          <stop offset="1"   stop-color="#121212" stop-opacity="0"/>
+        </radialGradient>
+      </defs>
+      <g stroke="url(#ray-title)" stroke-linecap="round" fill="none">
+        <line x1="2400" y1="540" x2="-200" y2="-1260" stroke-width="2"/>
+        <line x1="2400" y1="540" x2="-320" y2="-860"  stroke-width="1.5"/>
+        <line x1="2400" y1="540" x2="-500" y2="-540"  stroke-width="2.5"/>
+        <line x1="2400" y1="540" x2="-650" y2="-200"  stroke-width="1.5"/>
+        <line x1="2400" y1="540" x2="-760" y2="180"   stroke-width="3"/>
+        <line x1="2400" y1="540" x2="-800" y2="540"   stroke-width="2"/>
+        <line x1="2400" y1="540" x2="-760" y2="900"   stroke-width="3"/>
+        <line x1="2400" y1="540" x2="-650" y2="1280"  stroke-width="1.5"/>
+        <line x1="2400" y1="540" x2="-500" y2="1620"  stroke-width="2.5"/>
+        <line x1="2400" y1="540" x2="-320" y2="1940"  stroke-width="1.5"/>
+        <line x1="2400" y1="540" x2="-200" y2="2340"  stroke-width="2"/>
+      </g>
+      <rect width="1920" height="1080" fill="url(#vign-title)"/>
+    </svg>
+  </div>
+
+  <div class="slide-frame">
+    <div class="brand"><img src="assets/brand/dash0-logo-2026-color.png" alt="Dash0"></div>
+    <span class="deck-tag white">KCD Lima, Perú 2026</span>
+  </div>
+
+  <div style="position:relative;z-index:3;margin-top:280px;max-width:1620px">
+    <h1 class="display" style="color:#fff;font-size:168px;line-height:.95;letter-spacing:-.028em">
+      Domando a la <em>IA</em>.
+    </h1>
+  </div>
+
+  <div style="position:absolute;left:120px;bottom:140px;z-index:3;display:flex;align-items:center;gap:24px">
+    <div style="width:80px;height:80px;border-radius:50%;background:#F8494D url('Salaboy.jpeg') center/cover no-repeat;flex:none"></div>
+    <div>
+      <div style="font-size:30px;font-weight:600;color:#fff;letter-spacing:-.005em">Mauricio Salatino</div>
+      <div class="t-mono" style="font-size:14px;letter-spacing:.16em;color:#FCB6B8;text-transform:uppercase;margin-top:6px">Ingeniero de Ecosistemas</div>
+    </div>
+  </div>
+
+  <div class="slide-foot"><span></span><span class="num">01 / 08</span></div>
+</section>
+
+
+<!-- ============================================================
+     02 · TITLE (GenAI variant) — sunburst hero, mirrored from 01
+============================================================ -->
+<section class="dark" data-label="Title — GenAI">
+  <div class="sunburst-bg">
+    <svg viewBox="0 0 1920 1080" preserveAspectRatio="none" aria-hidden="true">
+      <defs>
+        <linearGradient id="ray-title-2" x1="0" x2="1" y1=".5" y2=".5">
+          <stop offset="0"   stop-color="#F8494D" stop-opacity="0"/>
+          <stop offset=".15" stop-color="#F8494D" stop-opacity="0"/>
+          <stop offset=".45" stop-color="#F8494D" stop-opacity=".65"/>
+          <stop offset=".85" stop-color="#FFC870" stop-opacity=".95"/>
+          <stop offset="1"   stop-color="#FFC870" stop-opacity="0"/>
+        </linearGradient>
+        <radialGradient id="vign-title-2" cx=".25" cy=".55" r=".75">
+          <stop offset="0"   stop-color="#121212" stop-opacity=".85"/>
+          <stop offset=".55" stop-color="#121212" stop-opacity=".5"/>
+          <stop offset="1"   stop-color="#121212" stop-opacity="0"/>
+        </radialGradient>
+      </defs>
+      <g stroke="url(#ray-title-2)" stroke-linecap="round" fill="none">
+        <line x1="2400" y1="540" x2="-200" y2="-1260" stroke-width="2"/>
+        <line x1="2400" y1="540" x2="-320" y2="-860"  stroke-width="1.5"/>
+        <line x1="2400" y1="540" x2="-500" y2="-540"  stroke-width="2.5"/>
+        <line x1="2400" y1="540" x2="-650" y2="-200"  stroke-width="1.5"/>
+        <line x1="2400" y1="540" x2="-760" y2="180"   stroke-width="3"/>
+        <line x1="2400" y1="540" x2="-800" y2="540"   stroke-width="2"/>
+        <line x1="2400" y1="540" x2="-760" y2="900"   stroke-width="3"/>
+        <line x1="2400" y1="540" x2="-650" y2="1280"  stroke-width="1.5"/>
+        <line x1="2400" y1="540" x2="-500" y2="1620"  stroke-width="2.5"/>
+        <line x1="2400" y1="540" x2="-320" y2="1940"  stroke-width="1.5"/>
+        <line x1="2400" y1="540" x2="-200" y2="2340"  stroke-width="2"/>
+      </g>
+      <rect width="1920" height="1080" fill="url(#vign-title-2)"/>
+    </svg>
+  </div>
+
+  <div class="slide-frame">
+    <div class="brand"><img src="assets/brand/dash0-logo-2026-color.png" alt="Dash0"></div>
+    <span class="deck-tag white">KCD Lima, Perú 2026</span>
+  </div>
+
+  <div style="position:relative;z-index:3;margin-top:280px;max-width:1620px">
+    <h1 class="display" style="color:#fff;font-size:168px;line-height:.95;letter-spacing:-.028em">
+      Domando a la <em>GenAI</em>.
+    </h1>
+  </div>
+
+  <div style="position:absolute;left:120px;bottom:140px;z-index:3;display:flex;align-items:center;gap:24px">
+    <div style="width:80px;height:80px;border-radius:50%;background:#F8494D url('Salaboy.jpeg') center/cover no-repeat;flex:none"></div>
+    <div>
+      <div style="font-size:30px;font-weight:600;color:#fff;letter-spacing:-.005em">Mauricio Salatino</div>
+      <div class="t-mono" style="font-size:14px;letter-spacing:.16em;color:#FCB6B8;text-transform:uppercase;margin-top:6px">Ingeniero de Ecosistemas</div>
+    </div>
+  </div>
+
+  <div class="slide-foot"><span></span><span class="num">02 / 08</span></div>
+</section>
+
+
+<!-- ============================================================
+     03 · SUBTITLE REVEAL — the real topic
+     Mirrors PDF p2: "Reacting to … (Distributed Multi-agent Systems)"
+============================================================ -->
+<section class="dark" data-label="Subtitle reveal">
+  <div class="slide-frame">
+    <div class="brand"><img src="assets/brand/dash0-logo-2026-color.png" alt="Dash0"></div>
+    <span class="deck-tag white">…de hecho</span>
+  </div>
+
+  <div class="center-all" style="gap:28px">
+    <h2 class="display" style="color:#fff;font-size:128px;line-height:.98;text-align:center;letter-spacing:-.025em;margin:0;max-width:22ch">
+      Domando &hellip;<br>
+      <em>Sistemas multi-agente distribuidos</em>.
+    </h2>
+  </div>
+
+  <div class="slide-foot">
+    <span>KCD Lima, Perú 2026 - https://www.salaboy.com/2026/06/08/reacting-to-ai/</span>
+    <span class="num">03 / 08</span>
+  </div>
+</section>
+
+
+<!-- ============================================================
+     04 · FIVE LEVELS — from spicy autocomplete to the dark factory
+     Adapted from the PlatformCon deck (after Dan Shapiro).
+============================================================ -->
+<section class="dark" data-label="Five levels">
+  <div class="slide-frame">
+    <div class="brand"><img src="assets/brand/dash0-logo-2026-color.png" alt="Dash0"></div>
+    <span class="deck-tag white">La escalera de la autonomía</span>
+  </div>
+
+  <div style="margin-top:48px;max-width:1700px">
+    <h2 class="t-h1" style="color:#fff;margin-top:14px;max-width:32ch">
+      <em>Cinco Niveles</em> de Agentic Engineering
+    </h2>
+  </div>
+
+  <!-- Ascending staircase of levels — each row indents progressively to the right -->
+  <div style="margin-top:44px;max-width:1700px;display:flex;flex-direction:column;gap:16px">
+
+    <!-- L1 -->
+    <div class="level-row" style="display:grid;grid-template-columns:116px 380px 1fr;gap:28px;align-items:center;padding-left:0;opacity:.78">
+      <div style="width:84px;height:84px;border-radius:50%;background:var(--ink-850);border:2px solid var(--orange-400);display:flex;align-items:center;justify-content:center;font-family:var(--mono);font-size:26px;font-weight:700;color:var(--orange-400)">L1</div>
+      <div class="t-mono" style="font-size:17px;letter-spacing:.2em;color:var(--orange-400);text-transform:uppercase;font-weight:700">Asistido por GenAI</div>
+      <div style="font-size:25px;color:var(--ink-300);line-height:1.4">Alternativas, sugerencias. <em style="color:#fff;font-style:normal">El usuario tiene el control.</em></div>
+    </div>
+
+    <!-- L2 — Most teams here -->
+    <div class="level-row" style="display:grid;grid-template-columns:116px 380px 1fr;gap:28px;align-items:center;padding-left:60px">
+      <div style="width:96px;height:96px;border-radius:50%;background:var(--ink-850);border:2px solid #FFC870;display:flex;align-items:center;justify-content:center;font-family:var(--mono);font-size:28px;font-weight:700;color:#FFC870;box-shadow:0 0 24px rgba(255,200,112,.3)">L2</div>
+      <div class="t-mono" style="font-size:17px;letter-spacing:.2em;color:#FFC870;text-transform:uppercase;font-weight:700">Aumentado por GenAI</div>
+      <div style="font-size:25px;color:#fff;line-height:1.4">Generación y modificación de recursos. <em style="color:#FFC870;font-style:normal">El usuario revisa cada diff.</em></div>
+    </div>
+
+    <!-- L3 -->
+    <div class="level-row" style="display:grid;grid-template-columns:116px 380px 1fr;gap:28px;align-items:center;padding-left:120px">
+      <div style="width:108px;height:108px;border-radius:50%;background:linear-gradient(155deg,#3A1E1A 0%,#1A1010 100%);border:2px solid var(--red-500);display:flex;align-items:center;justify-content:center;font-family:var(--mono);font-size:30px;font-weight:700;color:var(--red-500);box-shadow:0 0 36px rgba(248,73,77,.4)">L3</div>
+      <div class="t-mono" style="font-size:17px;letter-spacing:.2em;color:var(--red-400);text-transform:uppercase;font-weight:700">Centrado en Especificaciones</div>
+      <div style="font-size:25px;color:#fff;line-height:1.4">Comportamiento esperado y lo que está fuera de los límites. <em style="color:var(--red-400);font-style:normal">El usuario valida la intención.</em></div>
+    </div>
+
+    <!-- L4 -->
+    <div class="level-row" style="display:grid;grid-template-columns:116px 380px 1fr;gap:28px;align-items:center;padding-left:180px;opacity:.82">
+      <div style="width:92px;height:92px;border-radius:50%;background:var(--ink-850);border:2px solid var(--red-400);display:flex;align-items:center;justify-content:center;font-family:var(--mono);font-size:28px;font-weight:700;color:var(--red-400)">L4</div>
+      <div class="t-mono" style="font-size:17px;letter-spacing:.2em;color:var(--red-400);text-transform:uppercase;font-weight:700">Autonomía Selectiva</div>
+      <div style="font-size:25px;color:var(--ink-300);line-height:1.4">La confianza se construye progresivamente a partir de ejecuciones previas. <em style="color:var(--red-400);font-style:normal">La autonomía se gana.</em></div>
+    </div>
+
+    <!-- L5 -->
+    <div class="level-row" style="display:grid;grid-template-columns:116px 380px 1fr;gap:28px;align-items:center;padding-left:240px;opacity:.7">
+      <div style="width:84px;height:84px;border-radius:50%;background:var(--grad);display:flex;align-items:center;justify-content:center;font-family:var(--mono);font-size:26px;font-weight:700;color:#fff;box-shadow:0 0 36px rgba(248,73,77,.4)">L5</div>
+      <div class="t-mono" style="font-size:17px;letter-spacing:.2em;background:var(--grad);-webkit-background-clip:text;background-clip:text;color:transparent;text-transform:uppercase;font-weight:700">Autonomía Total</div>
+      <div style="font-size:25px;color:var(--ink-300);line-height:1.4">Los agentes entregan funcionalidades. <em style="color:#fff;font-style:normal">El usuario solicita cambios y gestiona la plataforma.</em></div>
+    </div>
+
+  </div>
+
+  <div class="slide-foot">
+    <span>KCD Lima, Perú 2026 - https://www.salaboy.com/2026/06/08/reacting-to-ai/</span>
+    <span class="num">04 / 08</span>
+  </div>
+</section>
+
+
+<!-- ============================================================
+     05 · DON'T PANIC — three pillars we already have
+     Mirrors PDF p3: Open Source / Kubernetes / CNCF Ecosystem
+============================================================ -->
+<section class="dark" data-label="Don't panic">
+  <div class="slide-frame">
+    <div class="brand"><img src="assets/brand/dash0-logo-2026-color.png" alt="Dash0"></div>
+    <span class="deck-tag">Las buenas noticias</span>
+  </div>
+
+  <div style="margin-top:80px;max-width:1700px">
+    <p class="kicker" style="color:var(--orange-400)">// Hemos aprendido mucho en los últimos 10 años</p>
+    <h2 class="t-h1" style="color:#fff;margin-top:20px;max-width:24ch">
+      No entres en <em>pánico</em>.
+    </h2>
+  </div>
+
+  <div class="grid g-3" style="margin-top:56px;max-width:1700px">
+
+    <!-- Open source — interconnected node graph -->
+    <div class="card dark" style="padding:0;overflow:hidden;display:flex;flex-direction:column">
+      <div style="height:240px;background:radial-gradient(circle at 50% 50%, rgba(248,73,77,.18) 0%, rgba(248,73,77,0) 70%);display:flex;align-items:center;justify-content:center;border-bottom:1px solid var(--ink-800)">
+        <svg width="260" height="200" viewBox="0 0 260 200" aria-hidden="true">
+          <defs>
+            <linearGradient id="os-grad" x1="0" y1="0" x2="1" y2="1">
+              <stop offset="0%" stop-color="#F8494D"/>
+              <stop offset="100%" stop-color="#FD8C66"/>
+            </linearGradient>
+            <radialGradient id="os-glow" cx=".5" cy=".5" r=".5">
+              <stop offset="0%" stop-color="#F8494D" stop-opacity=".55"/>
+              <stop offset="100%" stop-color="#F8494D" stop-opacity="0"/>
+            </radialGradient>
+          </defs>
+          <circle cx="130" cy="100" r="58" fill="url(#os-glow)"/>
+          <g stroke="url(#os-grad)" stroke-width="1.5" stroke-opacity=".6" fill="none">
+            <line x1="130" y1="100" x2="40"  y2="40"/>
+            <line x1="130" y1="100" x2="220" y2="40"/>
+            <line x1="130" y1="100" x2="40"  y2="160"/>
+            <line x1="130" y1="100" x2="220" y2="160"/>
+            <line x1="130" y1="100" x2="130" y2="20"/>
+            <line x1="130" y1="100" x2="130" y2="180"/>
+            <line x1="40"  y1="40"  x2="220" y2="40"/>
+            <line x1="40"  y1="160" x2="220" y2="160"/>
+            <line x1="40"  y1="40"  x2="40"  y2="160"/>
+            <line x1="220" y1="40"  x2="220" y2="160"/>
+          </g>
+          <g fill="url(#os-grad)">
+            <circle cx="40"  cy="40"  r="9"/>
+            <circle cx="220" cy="40"  r="9"/>
+            <circle cx="40"  cy="160" r="9"/>
+            <circle cx="220" cy="160" r="9"/>
+            <circle cx="130" cy="20"  r="7"/>
+            <circle cx="130" cy="180" r="7"/>
+          </g>
+          <circle cx="130" cy="100" r="18" fill="url(#os-grad)"/>
+          <circle cx="130" cy="100" r="18" fill="none" stroke="#fff" stroke-opacity=".25" stroke-width="2"/>
+        </svg>
+      </div>
+      <div style="padding:32px">
+        <p class="card-tag">01 · Pilar</p>
+        <h4>Open source</h4>
+        <p>Componentes componibles, estándares compartidos, interoperabilidad real.</p>
+      </div>
+    </div>
+
+    <!-- Kubernetes — real brand logo -->
+    <div class="card dark" style="padding:0;overflow:hidden;display:flex;flex-direction:column">
+      <div style="height:240px;background:radial-gradient(circle at 50% 50%, rgba(253,111,64,.22) 0%, rgba(253,111,64,0) 70%);display:flex;align-items:center;justify-content:center;border-bottom:1px solid var(--ink-800)">
+        <img src="assets/brand/kubernetes-logo.png" alt="Kubernetes" style="max-height:160px;max-width:70%;object-fit:contain;filter:drop-shadow(0 0 40px rgba(253,111,64,.35))">
+      </div>
+      <div style="padding:32px">
+        <p class="card-tag" style="color:var(--orange-500)">02 · Pilar</p>
+        <h4>Kubernetes</h4>
+        <p>Scheduling, aislamiento, identidad, APIs declarativas.</p>
+      </div>
+    </div>
+
+    <!-- CNCF ecosystem — the landscape grid -->
+    <div class="card dark" style="padding:0;overflow:hidden;display:flex;flex-direction:column">
+      <div style="height:240px;background:radial-gradient(circle at 50% 50%, rgba(144,120,243,.20) 0%, rgba(144,120,243,0) 70%);display:flex;align-items:center;justify-content:center;border-bottom:1px solid var(--ink-800);position:relative;overflow:hidden">
+        <img src="assets/cncf-observability-landscape.png" alt="CNCF landscape" style="max-height:210px;max-width:94%;object-fit:contain;filter:drop-shadow(0 0 28px rgba(144,120,243,.25))">
+        <div style="position:absolute;inset:0;pointer-events:none;background:radial-gradient(ellipse at center, rgba(0,0,0,0) 55%, rgba(26,26,26,.7) 100%)"></div>
+      </div>
+      <div style="padding:32px">
+        <p class="card-tag" style="color:var(--purple-500)">03 · Pilar</p>
+        <h4>Ecosistema CNCF</h4>
+        <p>Un vocabulario que toda la industria habla.</p>
+      </div>
+    </div>
+
+  </div>
+
+  <div class="slide-foot">
+    <span>KCD Lima, Perú 2026 - https://www.salaboy.com/2026/06/08/reacting-to-ai/</span>
+    <span class="num">05 / 08</span>
+  </div>
+</section>
+
+
+<!-- ============================================================
+     06 · WHERE DO WE START? — sunburst hero, kicker + headline only
+============================================================ -->
+<section class="dark" data-label="Where to start">
+  <div class="sunburst-bg">
+    <svg viewBox="0 0 1920 1080" preserveAspectRatio="none" aria-hidden="true">
+      <defs>
+        <linearGradient id="ray-start" x1="0" x2="1" y1=".5" y2=".5">
+          <stop offset="0"   stop-color="#F8494D" stop-opacity="0"/>
+          <stop offset=".15" stop-color="#F8494D" stop-opacity="0"/>
+          <stop offset=".45" stop-color="#F8494D" stop-opacity=".65"/>
+          <stop offset=".85" stop-color="#FFC870" stop-opacity=".95"/>
+          <stop offset="1"   stop-color="#FFC870" stop-opacity="0"/>
+        </linearGradient>
+        <radialGradient id="vign-start" cx=".25" cy=".55" r=".75">
+          <stop offset="0"   stop-color="#121212" stop-opacity=".85"/>
+          <stop offset=".55" stop-color="#121212" stop-opacity=".5"/>
+          <stop offset="1"   stop-color="#121212" stop-opacity="0"/>
+        </radialGradient>
+      </defs>
+      <g stroke="url(#ray-start)" stroke-linecap="round" fill="none">
+        <line x1="2400" y1="540" x2="-200" y2="-1260" stroke-width="2"/>
+        <line x1="2400" y1="540" x2="-320" y2="-860"  stroke-width="1.5"/>
+        <line x1="2400" y1="540" x2="-500" y2="-540"  stroke-width="2.5"/>
+        <line x1="2400" y1="540" x2="-650" y2="-200"  stroke-width="1.5"/>
+        <line x1="2400" y1="540" x2="-760" y2="180"   stroke-width="3"/>
+        <line x1="2400" y1="540" x2="-800" y2="540"   stroke-width="2"/>
+        <line x1="2400" y1="540" x2="-760" y2="900"   stroke-width="3"/>
+        <line x1="2400" y1="540" x2="-650" y2="1280"  stroke-width="1.5"/>
+        <line x1="2400" y1="540" x2="-500" y2="1620"  stroke-width="2.5"/>
+        <line x1="2400" y1="540" x2="-320" y2="1940"  stroke-width="1.5"/>
+        <line x1="2400" y1="540" x2="-200" y2="2340"  stroke-width="2"/>
+      </g>
+      <rect width="1920" height="1080" fill="url(#vign-start)"/>
+    </svg>
+  </div>
+
+  <div class="slide-frame">
+    <div class="brand"><img src="assets/brand/dash0-logo-2026-color.png" alt="Dash0"></div>
+    <span class="deck-tag white">La pregunta equivocada</span>
+  </div>
+
+  <div style="position:relative;z-index:3;margin-top:280px;max-width:1620px">
+    <h2 class="display" style="color:#fff;font-size:168px;line-height:.95;letter-spacing:-.028em;margin-top:32px">
+      Entonces, ¿por dónde <em>empezamos</em>?
+    </h2>
+  </div>
+
+  <div class="slide-foot">
+    <span>KCD Lima, Perú 2026 - https://www.salaboy.com/2026/06/08/reacting-to-ai/</span>
+    <span class="num">06 / 08</span>
+  </div>
+</section>
+
+
+<!-- ============================================================
+     07 · TAKEAWAYS — four emoji boxes
+============================================================ -->
+<section class="dark" data-label="Takeaways">
+  <div class="slide-frame">
+    <div class="brand"><img src="assets/brand/dash0-logo-2026-color.png" alt="Dash0"></div>
+    <span class="deck-tag">Llévate esto</span>
+  </div>
+
+  <div style="margin-top:80px;max-width:1700px">
+    <p class="kicker" style="font-size:56px;letter-spacing:.05em;color:var(--red-500);line-height:1.05">Cuatro conclusiones</p>
+  </div>
+
+  <div class="grid g-2" style="margin-top:72px;max-width:1700px;gap:36px">
+
+    <!-- 01 · Agents are everywhere -->
+    <div class="climb-box" style="--delay:0s;padding:48px 40px;min-height:280px;
+        border:2px solid var(--orange-400);border-radius:24px;
+        background:linear-gradient(155deg,rgba(253,140,102,.14) 0%,rgba(253,140,102,.02) 100%);
+        display:flex;flex-direction:column;align-items:center;justify-content:center;gap:24px;text-align:center;
+        box-shadow:0 0 48px rgba(253,140,102,.18)">
+      <span style="font-size:84px;line-height:1">🌐</span>
+      <span style="font-size:44px;font-weight:700;color:#fff;letter-spacing:-.018em;line-height:1.1">Los agentes están <em style="color:var(--orange-400);font-style:normal">en todas partes</em></span>
+    </div>
+
+    <!-- 02 · LLMs don't learn — the platform has to -->
+    <div class="climb-box" style="--delay:.25s;padding:48px 40px;min-height:280px;
+        border:2px solid #FFC870;border-radius:24px;
+        background:linear-gradient(155deg,rgba(255,200,112,.14) 0%,rgba(255,200,112,.02) 100%);
+        display:flex;flex-direction:column;align-items:center;justify-content:center;gap:24px;text-align:center;
+        box-shadow:0 0 48px rgba(255,200,112,.18)">
+      <span style="font-size:84px;line-height:1">🧠</span>
+      <span style="font-size:40px;font-weight:700;color:#fff;letter-spacing:-.018em;line-height:1.15;max-width:22ch">Los LLMs no aprenden —<br>tu <em style="color:#FFC870;font-style:normal">plataforma tiene que aprender</em></span>
+    </div>
+
+    <!-- 03 · Non-determinism becomes a platform concern -->
+    <div class="climb-box" style="--delay:.5s;padding:48px 40px;min-height:280px;
+        border:2px solid var(--red-500);border-radius:24px;
+        background:linear-gradient(155deg,rgba(248,73,77,.16) 0%,rgba(248,73,77,.02) 100%);
+        display:flex;flex-direction:column;align-items:center;justify-content:center;gap:24px;text-align:center;
+        box-shadow:0 0 48px rgba(248,73,77,.22)">
+      <span style="font-size:84px;line-height:1">🎲</span>
+      <span style="font-size:40px;font-weight:700;color:#fff;letter-spacing:-.018em;line-height:1.15;max-width:22ch">El no-determinismo es <em style="color:var(--red-400);font-style:normal">responsabilidad de la plataforma</em></span>
+    </div>
+
+    <!-- 04 · Measure, measure, measure -->
+    <div class="climb-box" style="--delay:.75s;padding:48px 40px;min-height:280px;
+        border:2px solid var(--purple-500);border-radius:24px;
+        background:linear-gradient(155deg,rgba(144,120,243,.16) 0%,rgba(144,120,243,.02) 100%);
+        display:flex;flex-direction:column;align-items:center;justify-content:center;gap:18px;text-align:center;
+        box-shadow:0 0 48px rgba(144,120,243,.22)">
+      <span style="font-size:84px;line-height:1">📏</span>
+      <span style="font-size:40px;font-weight:700;color:#fff;letter-spacing:-.018em;line-height:1.15">Mide. Mide. <em style="color:var(--purple-500);font-style:normal">Mide.</em></span>
+      <span class="t-mono" style="font-size:15px;letter-spacing:.26em;color:var(--purple-300);text-transform:uppercase;font-weight:700">DORA · SPACE · DX / AX</span>
+    </div>
+
+  </div>
+
+  <div class="slide-foot">
+    <span class="num">07 / 08</span>
+  </div>
+</section>
+
+
+<!-- ============================================================
+     08 · THANK YOU — sunburst closer
+============================================================ -->
+<section class="dark" data-label="Thank you">
+  <div class="sunburst-bg">
+    <svg viewBox="0 0 1920 1080" preserveAspectRatio="none" aria-hidden="true">
+      <defs>
+        <linearGradient id="ray-close" x1="0" x2="1" y1=".5" y2=".5">
+          <stop offset="0"   stop-color="#F8494D" stop-opacity="0"/>
+          <stop offset=".15" stop-color="#F8494D" stop-opacity="0"/>
+          <stop offset=".45" stop-color="#F8494D" stop-opacity=".65"/>
+          <stop offset=".85" stop-color="#FFC870" stop-opacity=".95"/>
+          <stop offset="1"   stop-color="#FFC870" stop-opacity="0"/>
+        </linearGradient>
+        <radialGradient id="vign-close" cx=".25" cy=".55" r=".75">
+          <stop offset="0"   stop-color="#121212" stop-opacity=".85"/>
+          <stop offset=".55" stop-color="#121212" stop-opacity=".5"/>
+          <stop offset="1"   stop-color="#121212" stop-opacity="0"/>
+        </radialGradient>
+      </defs>
+      <g stroke="url(#ray-close)" stroke-linecap="round" fill="none">
+        <line x1="2400" y1="540" x2="-200" y2="-1260" stroke-width="2"/>
+        <line x1="2400" y1="540" x2="-320" y2="-860"  stroke-width="1.5"/>
+        <line x1="2400" y1="540" x2="-500" y2="-540"  stroke-width="2.5"/>
+        <line x1="2400" y1="540" x2="-650" y2="-200"  stroke-width="1.5"/>
+        <line x1="2400" y1="540" x2="-760" y2="180"   stroke-width="3"/>
+        <line x1="2400" y1="540" x2="-800" y2="540"   stroke-width="2"/>
+        <line x1="2400" y1="540" x2="-760" y2="900"   stroke-width="3"/>
+        <line x1="2400" y1="540" x2="-650" y2="1280"  stroke-width="1.5"/>
+        <line x1="2400" y1="540" x2="-500" y2="1620"  stroke-width="2.5"/>
+        <line x1="2400" y1="540" x2="-320" y2="1940"  stroke-width="1.5"/>
+        <line x1="2400" y1="540" x2="-200" y2="2340"  stroke-width="2"/>
+      </g>
+      <rect width="1920" height="1080" fill="url(#vign-close)"/>
+    </svg>
+  </div>
+
+  <div class="slide-frame">
+    <div class="brand"><img src="assets/brand/dash0-logo-2026-color.png" alt="Dash0"></div>
+    <span class="deck-tag white">Domando a la IA</span>
+  </div>
+
+  <div style="position:absolute;left:120px;right:120px;top:240px;z-index:3;display:flex;flex-direction:column;align-items:center;gap:28px;text-align:center">
+    <p class="kicker" style="color:#FFC870">// Gracias.</p>
+    <h2 class="display" style="color:#fff;font-size:112px;line-height:.98;text-align:center;max-width:22ch;letter-spacing:-.025em;margin:0">
+      Tenemos las herramientas.<br>
+      Vamos a <em>mapearlas</em>.
+    </h2>
+    <p class="t-lead" style="color:var(--ink-300);text-align:center;font-size:26px;max-width:60ch;margin:0">
+      https://www.salaboy.com/2026/06/08/reacting-to-ai/
+    </p>
+  </div>
+
+  <div style="position:absolute;left:120px;bottom:140px;z-index:3;display:flex;align-items:center;gap:24px">
+    <div style="width:80px;height:80px;border-radius:50%;background:#F8494D url('Salaboy.jpeg') center/cover no-repeat;flex:none"></div>
+    <div>
+      <div style="font-size:30px;font-weight:600;color:#fff;letter-spacing:-.005em">Mauricio Salatino</div>
+      <div class="t-mono" style="font-size:14px;letter-spacing:.16em;color:#FCB6B8;text-transform:uppercase;margin-top:6px">Ingeniero de Ecosistemas</div>
+    </div>
+  </div>
+
+</section>
+
+</deck-stage>
+
+<script>
+  // Hide the visible deck controls (overlay + tap zones) while keeping
+  // keyboard navigation, which deck-stage binds to `window`.
+  (function hideDeckControls() {
+    const stage = document.querySelector('deck-stage');
+    if (!stage || !stage.shadowRoot) { requestAnimationFrame(hideDeckControls); return; }
+    const style = document.createElement('style');
+    style.textContent = '.overlay, .tapzones { display: none !important; }';
+    stage.shadowRoot.appendChild(style);
+  })();
+
+  // Space-driven progressive reveal. Each Space press advances `step` by 1
+  // and re-applies state. After the final step, Space falls through to
+  // deck-stage's bubble-phase handler and advances to the next slide.
+  function makeSpaceReveal(sectionSelector, totalSteps, apply) {
+    const stage = document.querySelector('deck-stage');
+    const section = document.querySelector(sectionSelector);
+    if (!stage || !section) return;
+    let step = 0;
+    const tick = () => apply(step, section);
+    const isActive = () => {
+      const slides = Array.from(stage.querySelectorAll(':scope > section'));
+      return slides[stage.index] === section;
+    };
+    stage.addEventListener('slidechange', (e) => {
+      if (e.detail.slide === section) { step = 0; tick(); }
+    });
+    window.addEventListener('keydown', (e) => {
+      if (e.key !== ' ' && e.key !== 'Spacebar') return;
+      if (e.metaKey || e.ctrlKey || e.altKey) return;
+      const t = e.target;
+      if (t && (t.isContentEditable || /^(INPUT|TEXTAREA|SELECT)$/.test(t.tagName))) return;
+      if (!isActive()) return;
+      if (step >= totalSteps) return;
+      step++;
+      tick();
+      e.preventDefault();
+      e.stopImmediatePropagation();
+    }, true);
+    tick();
+  }
+
+  // Slide 4 ("Five Levels"): 10 steps — for each row, circle+label then description.
+  makeSpaceReveal('section[data-label="Five levels"]', 10, (step, section) => {
+    section.querySelectorAll('.level-row').forEach((row, i) => {
+      row.classList.toggle('show-label', step >= i * 2 + 1);
+      row.classList.toggle('show-desc',  step >= i * 2 + 2);
+    });
+  });
+
+  // Slide 7 ("Takeaways"): 4 steps — one box per press, climb-in animation plays.
+  makeSpaceReveal('section[data-label="Takeaways"]', 4, (step, section) => {
+    section.querySelectorAll('.climb-box').forEach((box, i) => {
+      box.classList.toggle('revealed', i < step);
+    });
+  });
+</script>
+
+</body>
+</html>
