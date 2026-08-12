@@ -67,7 +67,8 @@ var transactions = map[string][]Transaction{
 }
 
 func initTracer() func() {
-	ctx := context.Background()
+	ctx, cancel := context.WithTimeout(context.Background(), 2*time.Second)
+	defer cancel()
 
 	exporter, err := otlptracegrpc.New(ctx)
 	if err != nil {
@@ -75,7 +76,7 @@ func initTracer() func() {
 		return func() {}
 	}
 
-	res, err := resource.New(ctx,
+	res, err := resource.New(context.Background(),
 		resource.WithAttributes(
 			semconv.ServiceName("homebanking-app"),
 		),
@@ -92,6 +93,8 @@ func initTracer() func() {
 	otel.SetTracerProvider(tp)
 
 	return func() {
+		ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+		defer cancel()
 		_ = tp.Shutdown(ctx)
 	}
 }
