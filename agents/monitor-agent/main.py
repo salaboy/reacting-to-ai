@@ -7,6 +7,7 @@ from threading import Lock, Thread
 import requests as http_client
 from fastapi import FastAPI
 from fastapi.staticfiles import StaticFiles
+from fastapi.responses import HTMLResponse
 from pydantic import BaseModel
 
 from telemetry import init_telemetry, instrument_fastapi
@@ -246,3 +247,20 @@ async def health():
 static_dir = Path(__file__).parent / "static"
 if static_dir.is_dir():
     app.mount("/", StaticFiles(directory=static_dir, html=True), name="frontend")
+else:
+    logger.warning("Static directory not found at %s, serving fallback response", static_dir)
+    
+    @app.get("/")
+    async def root():
+        return HTMLResponse(content="""
+        <!DOCTYPE html>
+        <html>
+        <head>
+            <title>Monitor Agent</title>
+        </head>
+        <body>
+            <h1>Monitor Agent</h1>
+            <p>Frontend not available. API endpoints are accessible at /api/</p>
+        </body>
+        </html>
+        """)
