@@ -91,17 +91,42 @@ def init_db():
                     completed_at     TIMESTAMPTZ
                 );
             """)
-            # IVFFlat indexes — only useful once there are enough rows; safe to create on empty table
-            cur.execute("""
-                CREATE INDEX IF NOT EXISTS investigations_embedding_idx
-                ON investigations USING ivfflat (embedding vector_cosine_ops)
-                WITH (lists = 10);
-            """)
-            cur.execute("""
-                CREATE INDEX IF NOT EXISTS evaluations_embedding_idx
-                ON evaluations USING ivfflat (embedding vector_cosine_ops)
-                WITH (lists = 10);
-            """)
+            
+            # Check row counts before creating IVFFlat indexes
+            # IVFFlat indexes require sufficient data for training (at least 'lists' rows)
+            cur.execute("SELECT COUNT(*) FROM investigations WHERE embedding IS NOT NULL")
+            inv_count = cur.fetchone()[0]
+            cur.execute("SELECT COUNT(*) FROM evaluations WHERE embedding IS NOT NULL")
+            ev_count = cur.fetchone()[0]
+            
+            # Only create IVFFlat indexes if we have enough data
+            # Otherwise, queries will use sequential scan which is fine for small datasets
+            if inv_count >= 100:
+                try:
+                    cur.execute("""
+                        CREATE INDEX IF NOT EXISTS investigations_embedding_idx
+                        ON investigations USING ivfflat (embedding vector_cosine_ops)
+                        WITH (lists = 10);
+                    """)
+                    logger.info("Created IVFFlat index on investigations (%d rows)", inv_count)
+                except Exception as e:
+                    logger.warning("Could not create IVFFlat index on investigations: %s", e)
+            else:
+                logger.info("Skipping IVFFlat index on investigations (only %d rows, need 100+)", inv_count)
+            
+            if ev_count >= 100:
+                try:
+                    cur.execute("""
+                        CREATE INDEX IF NOT EXISTS evaluations_embedding_idx
+                        ON evaluations USING ivfflat (embedding vector_cosine_ops)
+                        WITH (lists = 10);
+                    """)
+                    logger.info("Created IVFFlat index on evaluations (%d rows)", ev_count)
+                except Exception as e:
+                    logger.warning("Could not create IVFFlat index on evaluations: %s", e)
+            else:
+                logger.info("Skipping IVFFlat index on evaluations (only %d rows, need 100+)", ev_count)
+            
             cur.execute("CREATE INDEX IF NOT EXISTS investigations_alert_name_idx ON investigations (alert_name);")
             cur.execute("CREATE INDEX IF NOT EXISTS investigations_status_idx ON investigations (status);")
         conn.commit()
@@ -215,8 +240,18 @@ def format_results_as_text(rows: list[dict]) -> str:
 
 @app.on_event("startup")
 def on_startup():
-    init_db()
-    get_model()  # warm up the embedding model
+    try:
+        init_db()
+    except Exception as e:
+        logger.error("Failed to initialize database: %s", e, exc_info=True)
+        # Don't crash the application - let it start and retry on first request
+        # This allows the pod to become ready and database issues to be resolved later
+    
+    try:
+        get_model()  # warm up the embedding model
+    except Exception as e:
+        logger.error("Failed to load embedding model: %s", e, exc_info=True)
+        # Don't crash - model will be loaded on first request if needed
 
 
 # ---------------------------------------------------------------------------
@@ -484,13 +519,17 @@ def list_evaluations(limit: int = Query(50, ge=1, le=200)):
 
 @app.get("/health")
 def health():
-    conn = get_conn()
     try:
-        with conn.cursor() as cur:
-            cur.execute("SELECT COUNT(*) FROM investigations")
-            inv_count = cur.fetchone()[0]
-            cur.execute("SELECT COUNT(*) FROM evaluations")
-            ev_count = cur.fetchone()[0]
-    finally:
-        conn.close()
-    return {"status": "ok", "counts": {"investigations": inv_count, "evaluations": ev_count}}
+        conn = get_conn()
+        try:
+            with conn.cursor() as cur:
+                cur.execute("SELECT COUNT(*) FROM investigations")
+                inv_count = cur.fetchone()[0]
+                cur.execute("SELECT COUNT(*) FROM evaluations")
+                ev_count = cur.fetchone()[0]
+        finally:
+            conn.close()
+        return {"status": "ok", "counts": {"investigations": inv_count, "evaluations": ev_count}}
+    except Exception as e:
+        logger.error("Health check failed: %s", e)
+        return {"status": "degraded", "error": str(e)}
